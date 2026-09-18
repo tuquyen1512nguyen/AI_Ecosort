@@ -1,116 +1,120 @@
-import React, { useState } from "react";
-import GuideCard from "../components/GuideCard";
-
-// Danh mục bách khoa 22 loại rác chuẩn mực của hệ thống EcoSort AI
-const WASTE_CATALOG = [
-  // 5 Recyclables
-  { id: 0, class: "cardboard_box", name: "Thùng carton", type: "RECYCLABLE", badge: "Tái chế", guide: "Gấp phẳng, giữ khô ráo, loại bỏ băng dính và bỏ vào thùng tái chế." },
-  { id: 1, class: "can", name: "Lon kim loại (nhôm/sắt)", type: "RECYCLABLE", badge: "Tái chế", guide: "Rửa sạch cặn nước ngọt, ép xẹp để tiết kiệm không gian và bỏ vào thùng tái chế." },
-  { id: 2, class: "plastic_bottle_cap", name: "Nắp chai nhựa", type: "RECYCLABLE", badge: "Tái chế", guide: "Tháo rời nắp khỏi thân chai, rửa sạch và bỏ vào túi đựng đồ tái chế." },
-  { id: 3, class: "plastic_bottle", name: "Chai nhựa (PET/HDPE)", type: "RECYCLABLE", badge: "Tái chế", guide: "Đổ sạch chất lỏng thừa, xúc sạch bằng nước, bóp xẹp trước khi vứt." },
-  { id: 4, class: "reuseable_paper", name: "Giấy in / Giấy vở sạch", type: "RECYCLABLE", badge: "Tái chế", guide: "Gom thành xấp, tránh để dính dầu mỡ hoặc nước bẩn làm hư bột giấy." },
-
-  // 11 Non-Recyclables
-  { id: 5, class: "plastic_bag", name: "Túi nilon sinh hoạt", type: "NON_RECYCLABLE", badge: "Rác sinh hoạt", guide: "Buộc gọn gàng, bỏ vào thùng rác vô cơ / rác sinh hoạt thông thường." },
-  { id: 6, class: "scrap_paper", name: "Giấy dơ / Khăn ăn dính dầu", type: "NON_RECYCLABLE", badge: "Rác sinh hoạt", guide: "Giấy đã dính dầu mỡ không thể thu hồi bột giấy, bỏ vào rác sinh hoạt." },
-  { id: 7, class: "stick", name: "Que gỗ / Que kem", type: "NON_RECYCLABLE", badge: "Rác sinh hoạt", guide: "Bỏ vào túi rác sinh hoạt gia đình." },
-  { id: 8, class: "plastic_cup", name: "Cốc nhựa dùng một lần", type: "NON_RECYCLABLE", badge: "Rác sinh hoạt", guide: "Đổ bỏ đá và nước thừa, bỏ vào thùng rác sinh hoạt." },
-  { id: 9, class: "snack_bag", name: "Vỏ bánh kẹo / Bao bì bim bim", type: "NON_RECYCLABLE", badge: "Rác sinh hoạt", guide: "Bao bì màng phức hợp nhôm nhựa khó tách lớp, bỏ vào rác thông thường." },
-  { id: 10, class: "plastic_box", name: "Hộp xốp đựng cơm", type: "NON_RECYCLABLE", badge: "Rác sinh hoạt", guide: "Hộp xốp dính dầu mỡ thức ăn, vét sạch cơm thừa và vứt rác sinh hoạt." },
-  { id: 11, class: "straw", name: "Ống hút nhựa", type: "NON_RECYCLABLE", badge: "Rác sinh hoạt", guide: "Kích thước quá nhỏ dễ lọt qua lưới phân loại, bỏ thùng rác sinh hoạt." },
-  { id: 12, class: "plastic_cup_lid", name: "Nắp cốc trà sữa mang đi", type: "NON_RECYCLABLE", badge: "Rác sinh hoạt", guide: "Bỏ vào thùng rác sinh hoạt." },
-  { id: 13, class: "scrap_plastic", name: "Mảnh nhựa vỡ vụn", type: "NON_RECYCLABLE", badge: "Rác sinh hoạt", guide: "Gói cẩn thận tránh làm rách bao rác sinh hoạt." },
-  { id: 14, class: "cardboard_bowl", name: "Tô giấy thức ăn", type: "NON_RECYCLABLE", badge: "Rác sinh hoạt", guide: "Tô giấy có tráng màng chống thấm dầu mỡ, không tái chế được." },
-  { id: 15, class: "plastic_cultery", name: "Muỗng đũa dao nhựa", type: "NON_RECYCLABLE", badge: "Rác sinh hoạt", guide: "Đồ nhựa dùng một lần, bỏ vào túi rác sinh hoạt." },
-
-  // 6 Hazardous
-  { id: 16, class: "battery", name: "Pin các loại (AA, AAA, cúc áo)", type: "HAZARDOUS", badge: "Nguy hại", guide: "Dán băng dính cách điện 2 cực, không vứt chung rác nhà, nộp tại điểm thu gom pin." },
-  { id: 17, class: "chemical_spray_can", name: "Bình xịt côn trùng / Bình nén khí", type: "HAZARDOUS", badge: "Nguy hại", guide: "Bình nén khí dễ nổ khi gặp nhiệt độ cao, giao cho đơn vị xử lý độc hại." },
-  { id: 18, class: "chemical_plastic_bottle", name: "Chai đựng hóa chất tẩy rửa", type: "HAZARDOUS", badge: "Nguy hại", guide: "Vặn chặt nắp đậy, không súc xả hóa chất độc trực tiếp ra môi trường nước." },
-  { id: 19, class: "chemical_plastic_gallon", name: "Can nhựa hóa chất công nghiệp", type: "HAZARDOUS", badge: "Nguy hại", guide: "Thu gom và bàn giao theo quy trình chất thải nguy hại." },
-  { id: 20, class: "light_bulb", name: "Bóng đèn huỳnh quang / LED", type: "HAZARDOUS", badge: "Nguy hại", guide: "Chứa hơi thủy ngân độc hại; bọc xốp mềm tránh rơi vỡ và giao điểm thu gom." },
-  { id: 21, class: "paint_bucket", name: "Thùng vỏ sơn tường", type: "HAZARDOUS", badge: "Nguy hại", guide: "Tồn dư dung môi kim loại nặng; không dùng chứa nước ăn, giao cơ sở chuyên trách." },
-];
-
-/**
- * Trang Cẩm Nang Phân Loại (Guide Page Skeleton)
- * Bách khoa tra cứu chi tiết 22 loại rác kèm tính năng lọc Tab và tìm kiếm tức thời
- */
 export default function Guide() {
-  const [activeTab, setActiveTab] = useState("ALL");
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const filteredItems = WASTE_CATALOG.filter((item) => {
-    const matchesTab = activeTab === "ALL" ? true : item.type === activeTab;
-    const matchesSearch =
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.class.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.guide.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesTab && matchesSearch;
-  });
-
   return (
-    <div className="page-wrapper container">
-      <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
-        <h1 style={{ fontSize: "2.25rem", marginBottom: "0.5rem" }}>Cẩm Nang Phân Loại Rác</h1>
-        <p style={{ color: "var(--text-muted)", maxWidth: "600px", margin: "0 auto" }}>
-          Tra cứu nhanh quy chuẩn phân loại 22 loại rác phổ biến theo hướng dẫn của Luật Bảo vệ Môi trường
+    <main className="page">
+      <header className="guide-header">
+        <h1>Hướng Dẫn Sử Dụng EcoSort AI</h1>
+        <p>
+          Trang này giúp người dùng biết cách quét rác, đọc kết quả AI và phân
+          loại rác đúng cách.
         </p>
+      </header>
 
-        {/* Thanh tìm kiếm */}
-        <div style={{ marginTop: "1.5rem", maxWidth: "480px", margin: "1.5rem auto 1rem auto" }}>
-          <input
-            type="text"
-            placeholder="🔍 Tìm kiếm rác theo tên (vd: chai nhựa, pin, vỏ bánh...)"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "0.85rem 1.25rem",
-              borderRadius: "8px",
-              border: "1px solid var(--border-color)",
-              backgroundColor: "#1e293b",
-              color: "#fff",
-              outline: "none",
-            }}
-          />
+      <section className="steps-box">
+        <h2>Cách sử dụng hệ thống</h2>
+
+        <div className="steps">
+          <div>
+            <b>1</b>
+            <h3>Chọn ảnh hoặc mở webcam</h3>
+            <p>Vào trang Quét AI, tải ảnh rác lên hoặc chụp trực tiếp bằng webcam.</p>
+          </div>
+
+          <div>
+            <b>2</b>
+            <h3>Nhấn phân tích</h3>
+            <p>Hệ thống gửi ảnh đến mô hình AI để nhận diện loại rác.</p>
+          </div>
+
+          <div>
+            <b>3</b>
+            <h3>Xem kết quả</h3>
+            <p>Người dùng xem tên rác, nhóm rác, độ tin cậy và hướng dẫn xử lý.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="category-grid">
+        <div className="category-card blue-border">
+          <div>♻️</div>
+          <h3>Rác tái chế</h3>
+          <p>Chai nhựa, lon kim loại, thùng carton, giấy sạch, nắp chai nhựa.</p>
+          <span>✅ Rửa sạch, làm khô rồi bỏ vào thùng tái chế.</span>
         </div>
 
-        {/* Bộ lọc Tab */}
-        <div style={{ display: "inline-flex", gap: "0.5rem", flexWrap: "wrap", justifyContent: "center" }}>
-          <button
-            onClick={() => setActiveTab("ALL")}
-            style={{ padding: "0.5rem 1rem", background: activeTab === "ALL" ? "var(--primary)" : "#1e293b", color: "#fff" }}
-          >
-            Tất Cả ({WASTE_CATALOG.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("RECYCLABLE")}
-            style={{ padding: "0.5rem 1rem", background: activeTab === "RECYCLABLE" ? "var(--recyclable)" : "#1e293b", color: "#fff" }}
-          >
-            🟢 Tái Chế (5)
-          </button>
-          <button
-            onClick={() => setActiveTab("NON_RECYCLABLE")}
-            style={{ padding: "0.5rem 1rem", background: activeTab === "NON_RECYCLABLE" ? "var(--non-recyclable)" : "#1e293b", color: "#fff" }}
-          >
-            ⚪ Không Tái Chế (11)
-          </button>
-          <button
-            onClick={() => setActiveTab("HAZARDOUS")}
-            style={{ padding: "0.5rem 1rem", background: activeTab === "HAZARDOUS" ? "var(--hazardous)" : "#1e293b", color: "#fff" }}
-          >
-            🔴 Nguy Hại (6)
-          </button>
+        <div className="category-card gray-border">
+          <div>🗑️</div>
+          <h3>Rác không tái chế</h3>
+          <p>Túi nilon bẩn, ống hút, ly nhựa bẩn, hộp xốp, giấy dính dầu mỡ.</p>
+          <span>⚠️ Bỏ vào thùng rác sinh hoạt.</span>
         </div>
-      </div>
 
-      {/* Grid danh sách các loại rác */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1.25rem" }}>
-        {filteredItems.map((item) => (
-          <GuideCard key={item.id} item={item} />
-        ))}
-      </div>
-    </div>
+        <div className="category-card red-border">
+          <div>☣️</div>
+          <h3>Rác nguy hại</h3>
+          <p>Pin, bóng đèn, bình xịt hóa chất, chai hóa chất, thùng sơn.</p>
+          <span>🚫 Không bỏ chung, cần đưa đến điểm thu gom riêng.</span>
+        </div>
+      </section>
+
+      <section className="steps-box">
+        <h2>Mẹo để AI nhận diện chính xác hơn</h2>
+
+        <div className="steps">
+          <div>
+            <b>💡</b>
+            <h3>Đủ ánh sáng</h3>
+            <p>Chụp ảnh ở nơi sáng, tránh bóng tối hoặc ảnh bị mờ.</p>
+          </div>
+
+          <div>
+            <b>🎯</b>
+            <h3>Một vật thể chính</h3>
+            <p>Nên chụp một loại rác rõ ràng, không để quá nhiều vật lẫn nhau.</p>
+          </div>
+
+          <div>
+            <b>📷</b>
+            <h3>Góc chụp rõ</h3>
+            <p>Đặt vật ở giữa khung hình để mô hình dễ nhận diện hơn.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="faq">
+        <h2>Câu hỏi thường gặp</h2>
+
+        <details>
+          <summary>Hệ thống EcoSort AI dùng để làm gì?</summary>
+          <p>
+            Hệ thống dùng AI và Computer Vision để nhận diện rác từ hình ảnh,
+            sau đó phân loại thành rác tái chế, không tái chế hoặc nguy hại.
+          </p>
+        </details>
+
+        <details>
+          <summary>Kết quả nhận diện có lưu lại không?</summary>
+          <p>
+            Có. Sau khi quét thành công, kết quả sẽ được lưu ở trang Lịch Sử
+            để người dùng xem lại.
+          </p>
+        </details>
+
+        <details>
+          <summary>Cần làm gì nếu AI nhận diện sai?</summary>
+          <p>
+            Người dùng nên chụp lại ảnh rõ hơn, đủ sáng hơn và để vật thể rác
+            nằm ở trung tâm khung hình.
+          </p>
+        </details>
+
+        <details>
+          <summary>Rác nguy hại xử lý như thế nào?</summary>
+          <p>
+            Pin, bóng đèn, bình xịt hóa chất và chai hóa chất cần được để riêng,
+            không bỏ chung với rác sinh hoạt.
+          </p>
+        </details>
+      </section>
+    </main>
   );
 }
