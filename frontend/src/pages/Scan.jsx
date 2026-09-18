@@ -1,185 +1,236 @@
-import React, { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import Webcam from "react-webcam";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "../firebase";
-import { predictWasteImage } from "../api/wasteAPI";
-import UploadCard from "../components/UploadCard";
-import ResultCard from "../components/ResultCard";
 
-/**
- * Trang Quét Rác AI (Scan Page Skeleton)
- * Trung tâm tương tác: Hỗ trợ chuyển đổi giữa Upload ảnh & Quét Webcam, gọi API YOLOv8 và đồng bộ Firestore
- */
+import { predictWasteImage } from "../api/wasteApi";
+import { db } from "../firebase";
+
 export default function Scan({ user }) {
   const webcamRef = useRef(null);
 
-  // States quản lý chế độ và dữ liệu
-  const [mode, setMode] = useState("upload"); // "upload" | "webcam"
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState("upload");
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState(null);
   const [result, setResult] = useState(null);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // Handler: Chọn tệp ảnh tải lên
-  const handleFileSelect = (file) => {
-    setSelectedFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
+  const chooseFile = (e) => {
+    const img = e.target.files[0];
+
+    if (!img) return;
+
+    setFile(img);
+    setPreview(URL.createObjectURL(img));
     setResult(null);
-    setErrorMessage("");
   };
 
-  // Handler: Chụp ảnh từ Webcam
-  const handleCaptureWebcam = async () => {
-    if (!webcamRef.current) return;
-    const imageSrc = webcamRef.current.getScreenshot();
-    if (!imageSrc) return;
+  const captureWebcam = async () => {
+    const imageSrc = webcamRef.current?.getScreenshot();
 
-    // Chuyển chuỗi Base64 sang đối tượng File
-    const fetchRes = await fetch(imageSrc);
-    const blob = await fetchRes.blob();
-    const file = new File([blob], "webcam-capture.jpg", { type: "image/jpeg" });
+    if (!imageSrc) {
+      alert("Không thể chụp ảnh từ webcam.");
+      return;
+    }
 
-    setSelectedFile(file);
-    setPreviewUrl(imageSrc);
+    setPreview(imageSrc);
+
+    const blob = await fetch(imageSrc).then((res) => res.blob());
+
+    const webcamFile = new File([blob], "webcam-capture.jpg", {
+      type: "image/jpeg",
+    });
+
+    setFile(webcamFile);
     setResult(null);
-    setErrorMessage("");
   };
 
-  // Handler: Gửi ảnh phân loại qua FastAPI & Lưu Firestore
-  const handlePredict = async () => {
-    if (!selectedFile) {
-      setErrorMessage("Vui lòng chọn hoặc chụp ảnh trước khi phân loại.");
+  const resetScan = () => {
+    setFile(null);
+    setPreview(null);
+    setResult(null);
+  };
+
+  const saveHistoryToFirestore = async (data) => {
+    await addDoc(collection(db, "history"), {
+      uid: user?.uid || "guest",
+      email: user?.email || "guest",
+      class: data.class,
+      type: data.type,
+      confidence: data.confidence,
+      guide: data.guide,
+      imagePreview: preview || "",
+      createdAt: serverTimestamp(),
+    });
+  };
+
+  const saveHistoryToLocalStorage = (data) => {
+    const historyKey = user?.uid ? `history_${user.uid}` : "history_guest";
+
+    const history = JSON.parse(localStorage.getItem(historyKey)) || [];
+
+    history.unshift({
+      ...data,
+      uid: user?.uid || "guest",
+      email: user?.email || "guest",
+      time: new Date().toLocaleString("vi-VN"),
+    });
+
+    localStorage.setItem(historyKey, JSON.stringify(history));
+  };
+
+  const analyze = async () => {
+    if (!file) {
+      alert("Vui lòng chọn hoặc chụp ảnh trước.");
       return;
     }
 
     try {
       setLoading(true);
-      setErrorMessage("");
 
-      // 1. Gọi API AI Backend
-      const predictionData = await predictWasteImage(selectedFile);
-      setResult(predictionData);
+      const data = await predictWasteImage(file);
 
-      // 2. Đồng bộ kết quả vào Firestore nếu người dùng đã đăng nhập
-      if (user && predictionData.type !== "UNKNOWN") {
-        await addDoc(collection(db, "history"), {
-          userId: user.uid,
-          userEmail: user.email || "",
-          className: predictionData.class,
-          wasteType: predictionData.type,
-          confidence: predictionData.confidence,
-          guide: predictionData.guide,
-          color: predictionData.color,
-          createdAt: serverTimestamp(),
-        });
-      }
-    } catch (err) {
-      setErrorMessage("Không thể kết nối máy chủ AI hoặc xử lý ảnh thất bại.");
-      console.error(err);
+      setResult(data);
+
+      saveHistoryToLocalStorage(data);
+
+      await saveHistoryToFirestore(data);
+    } catch (error) {
+      console.error("SCAN ERROR:", error);
+      alert("Lỗi khi phân tích hoặc lưu lịch sử.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="page-wrapper container" style={{ maxWidth: "800px" }}>
-      <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-        <h1 style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>Nhận Diện & Phân Loại Rác</h1>
-        <p style={{ color: "var(--text-muted)" }}>
-          Chụp ảnh hoặc tải lên hình ảnh rác để AI tự động phân tích trong giây lát
-        </p>
+    <main className="scan-page">
+      <div className="scan-left">
+        <h1>Nhận Diện Rác Thải</h1>
+        <p>Tải ảnh lên hoặc chụp trực tiếp để AI phân loại giúp bạn.</p>
 
-        {/* Tab chuyển đổi chế độ */}
-        <div style={{ display: "inline-flex", background: "#1e293b", borderRadius: "8px", padding: "4px", marginTop: "1rem" }}>
+        <div className="scan-tabs">
           <button
-            onClick={() => setMode("upload")}
-            style={{
-              padding: "0.5rem 1.25rem",
-              background: mode === "upload" ? "var(--primary)" : "transparent",
-              color: "#fff",
+            type="button"
+            className={mode === "upload" ? "tab-active" : ""}
+            onClick={() => {
+              setMode("upload");
+              resetScan();
             }}
           >
-            📁 Tải Ảnh Lên
+            🖼 Tải ảnh
           </button>
+
           <button
-            onClick={() => setMode("webcam")}
-            style={{
-              padding: "0.5rem 1.25rem",
-              background: mode === "webcam" ? "var(--primary)" : "transparent",
-              color: "#fff",
+            type="button"
+            className={mode === "camera" ? "tab-active" : ""}
+            onClick={() => {
+              setMode("camera");
+              resetScan();
             }}
           >
-            📷 Quét Webcam
+            📷 Webcam
           </button>
+        </div>
+
+        {mode === "upload" ? (
+          <label className="upload-zone">
+            {preview ? (
+              <img src={preview} alt="preview" className="preview" />
+            ) : (
+              <>
+                <div className="upload-icon">☁️</div>
+                <h3>Kéo và thả ảnh vào đây</h3>
+                <p>Hỗ trợ JPG, PNG, JPEG</p>
+                <span>Chọn Ảnh Từ Thiết Bị</span>
+              </>
+            )}
+
+            <input type="file" accept="image/*" hidden onChange={chooseFile} />
+          </label>
+        ) : (
+          <div className="webcam-zone">
+            {preview ? (
+              <img src={preview} alt="webcam-preview" className="preview" />
+            ) : (
+              <Webcam
+                ref={webcamRef}
+                audio={false}
+                screenshotFormat="image/jpeg"
+                className="webcam"
+                videoConstraints={{
+                  facingMode: "environment",
+                }}
+              />
+            )}
+
+            <button type="button" className="camera-btn" onClick={captureWebcam}>
+              📸 Chụp ảnh
+            </button>
+
+            {preview && (
+              <button type="button" className="secondary-btn" onClick={resetScan}>
+                🔄 Chụp lại
+              </button>
+            )}
+          </div>
+        )}
+
+        <button
+          type="button"
+          className="primary-btn"
+          onClick={analyze}
+          disabled={!file || loading}
+        >
+          {loading ? "Đang phân tích..." : "🔍 Phân tích ngay"}
+        </button>
+
+        <div className="tips-grid">
+          <div>
+            💡 <b>Ánh sáng tốt</b>
+            <p>Chụp ở nơi đủ sáng để AI nhận diện tốt hơn.</p>
+          </div>
+
+          <div>
+            🎯 <b>Vật thể rõ ràng</b>
+            <p>Tránh chụp nhiều loại rác cùng một lúc.</p>
+          </div>
+
+          <div>
+            🧼 <b>Làm sạch rác</b>
+            <p>Nên đổ sạch chất lỏng bên trong chai lọ.</p>
+          </div>
         </div>
       </div>
 
-      {/* Thông báo lỗi nếu có */}
-      {errorMessage && (
-        <div style={{ padding: "0.75rem 1rem", backgroundColor: "rgba(239, 68, 68, 0.2)", border: "1px solid var(--hazardous)", borderRadius: "8px", marginBottom: "1.5rem", color: "#fca5a5", textAlign: "center" }}>
-          {errorMessage}
-        </div>
-      )}
+      <div className="scan-right">
+        <div className="result-panel">
+          {result ? (
+            <>
+              {preview && <img src={preview} alt="result" />}
 
-      {/* Vùng tương tác theo Mode */}
-      {mode === "upload" ? (
-        <UploadCard onFileSelect={handleFileSelect} previewUrl={previewUrl} />
-      ) : (
-        <div className="card" style={{ textAlign: "center" }}>
-          {previewUrl ? (
-            <div>
-              <img src={previewUrl} alt="Captured preview" style={{ maxHeight: "300px", borderRadius: "8px" }} />
-              <div style={{ marginTop: "1rem" }}>
-                <button
-                  onClick={() => { setPreviewUrl(null); setSelectedFile(null); }}
-                  style={{ padding: "0.5rem 1rem", background: "#334155", color: "#fff" }}
-                >
-                  Chụp Lại Ảnh Khác
+              <div className="result-content">
+                <h2>{result.class}</h2>
+                <p>Độ tin cậy: {result.confidence}%</p>
+
+                <div className="info-row">✅ Loại: {result.type}</div>
+                <div className="info-row">⚠️ {result.guide}</div>
+                <div className="info-row">
+                  🌱 Kết quả đã được lưu vào lịch sử
+                </div>
+
+                <button type="button" className="primary-btn" onClick={resetScan}>
+                  Quét ảnh mới
                 </button>
               </div>
-            </div>
+            </>
           ) : (
-            <div>
-              <Webcam
-                ref={webcamRef}
-                screenshotFormat="image/jpeg"
-                videoConstraints={{ facingMode: "environment" }}
-                style={{ width: "100%", maxHeight: "360px", borderRadius: "8px", objectFit: "cover" }}
-              />
-              <div style={{ marginTop: "1rem" }}>
-                <button
-                  onClick={handleCaptureWebcam}
-                  style={{ padding: "0.75rem 2rem", backgroundColor: "var(--primary)", color: "#fff" }}
-                >
-                  📸 Chụp Khung Hình
-                </button>
-              </div>
+            <div className="empty-result">
+              <h2>Kết quả nhận diện</h2>
+              <p>Vui lòng tải ảnh hoặc chụp webcam để AI phân tích.</p>
             </div>
           )}
         </div>
-      )}
-
-      {/* Nút thực thi phân loại */}
-      {selectedFile && !loading && (
-        <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
-          <button
-            onClick={handlePredict}
-            style={{
-              padding: "0.85rem 2.5rem",
-              fontSize: "1.1rem",
-              backgroundColor: "var(--primary)",
-              color: "#fff",
-              boxShadow: "0 4px 14px rgba(22, 163, 74, 0.4)",
-            }}
-          >
-            Phân Loại Rác Bằng AI
-          </button>
-        </div>
-      )}
-
-      {/* Hiển thị kết quả */}
-      <ResultCard result={result} loading={loading} />
-    </div>
+      </div>
+    </main>
   );
 }

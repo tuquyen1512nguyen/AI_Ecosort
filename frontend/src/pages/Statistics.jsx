@@ -1,164 +1,556 @@
-import React, { useEffect, useState } from "react";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "../firebase";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import {
+  collection,
+  getDocs,
+  doc,
+  updateDoc,
+  deleteDoc,
+} from "firebase/firestore";
 
-/**
- * Trang Thống Kê & Tác Động Môi Trường (Statistics Page Skeleton)
- * Tính toán định lượng: Tỷ lệ tái chế, Điểm Eco-points, Ước tính giảm phát thải CO2
- */
-export default function Statistics({ user }) {
-  const [stats, setStats] = useState({
-    total: 0,
-    recyclable: 0,
-    nonRecyclable: 0,
-    hazardous: 0,
-    ecoPoints: 0,
-    co2Saved: "0.0",
+import { db } from "../firebase";
+
+export default function Statistics() {
+  const [history, setHistory] = useState([]);
+  const [users, setUsers] = useState([]);
+
+  const [editingUser, setEditingUser] = useState(null);
+
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    role: "user",
+    status: "Hoạt động",
   });
-  const [loading, setLoading] = useState(true);
+
+  const fetchData = async () => {
+    try {
+      const historySnap = await getDocs(
+        collection(db, "history")
+      );
+
+      const usersSnap = await getDocs(
+        collection(db, "users")
+      );
+
+      const historyData = historySnap.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      const usersData = usersSnap.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setHistory(historyData);
+      setUsers(usersData);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   useEffect(() => {
-    async function calculateStats() {
-      if (!user) {
-        setLoading(false);
-        return;
+    fetchData();
+  }, []);
+
+  // =========================
+  // THỐNG KÊ
+  // =========================
+
+  const totalScans = history.length;
+
+  const recyclable = history.filter(
+    (item) => item.type === "RECYCLABLE"
+  ).length;
+
+  const nonRecyclable = history.filter(
+    (item) => item.type === "NON_RECYCLABLE"
+  ).length;
+
+  const hazardous = history.filter(
+    (item) => item.type === "HAZARDOUS"
+  ).length;
+
+  const unknown = history.filter(
+    (item) =>
+      item.type !== "RECYCLABLE" &&
+      item.type !== "NON_RECYCLABLE" &&
+      item.type !== "HAZARDOUS"
+  ).length;
+
+  // =========================
+  // USER SCAN COUNT
+  // =========================
+
+  const getUserScans = (user) => {
+    return history.filter(
+      (item) =>
+        item.uid === user.id ||
+        item.email === user.email
+    ).length;
+  };
+
+  // =========================
+  // EXPORT CSV
+  // =========================
+
+  const exportReport = () => {
+    const rows = [
+      [
+        "Email",
+        "Loai rac",
+        "Nhom",
+        "Do tin cay",
+        "Huong dan",
+      ],
+
+      ...history.map((item) => [
+        item.email || "guest",
+        item.class || "Unknown",
+        item.type || "Unknown",
+        item.confidence || 0,
+        item.guide || "",
+      ]),
+    ];
+
+    const csv = rows
+      .map((row) => row.join(","))
+      .join("\n");
+
+    const blob = new Blob(
+      ["\uFEFF" + csv],
+      {
+        type: "text/csv;charset=utf-8;",
       }
-
-      try {
-        setLoading(true);
-        const q = query(collection(db, "history"), where("userId", "==", user.uid));
-        const snapshot = await getDocs(q);
-
-        let total = 0;
-        let rec = 0;
-        let nonRec = 0;
-        let haz = 0;
-
-        snapshot.forEach((doc) => {
-          total++;
-          const data = doc.data();
-          if (data.wasteType === "RECYCLABLE") rec++;
-          else if (data.wasteType === "HAZARDOUS") haz++;
-          else nonRec++;
-        });
-
-        // Công thức tính điểm Eco-points & lượng CO2 giảm phát thải
-        const points = rec * 10 + nonRec * 2 + haz * 15;
-        const co2 = (rec * 0.15 + haz * 0.5).toFixed(2);
-
-        setStats({
-          total,
-          recyclable: rec,
-          nonRecyclable: nonRec,
-          hazardous: haz,
-          ecoPoints: points,
-          co2Saved: co2,
-        });
-      } catch (err) {
-        console.error("Lỗi tính toán số liệu thống kê:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    calculateStats();
-  }, [user]);
-
-  if (!user) {
-    return (
-      <div className="page-wrapper container" style={{ textAlign: "center", maxWidth: "600px" }}>
-        <div className="card" style={{ padding: "3rem 1.5rem" }}>
-          <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📊</div>
-          <h2>Báo Cáo Tác Động Môi Trường</h2>
-          <p style={{ color: "var(--text-muted)", margin: "1rem 0 1.5rem 0" }}>
-            Vui lòng đăng nhập để theo dõi các chỉ số sống xanh và bảng phân tích rác thải cá nhân.
-          </p>
-          <Link to="/login">
-            <button style={{ padding: "0.75rem 2rem", background: "var(--primary)", color: "#fff" }}>
-              Đăng Nhập Ngay
-            </button>
-          </Link>
-        </div>
-      </div>
     );
-  }
 
-  const recyclePercent = stats.total > 0 ? Math.round((stats.recyclable / stats.total) * 100) : 0;
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = "ecosort-report.csv";
+
+    a.click();
+
+    URL.revokeObjectURL(url);
+  };
+
+  // =========================
+  // EDIT USER
+  // =========================
+
+  const openEdit = (user) => {
+    setEditingUser(user);
+
+    setForm({
+      name: user.name || "",
+      email: user.email || "",
+      role: user.role || "user",
+      status: user.status || "Hoạt động",
+    });
+  };
+
+  const saveEdit = async () => {
+    try {
+      if (!editingUser) return;
+
+      await updateDoc(
+        doc(db, "users", editingUser.id),
+        {
+          name: form.name,
+          email: form.email,
+          role: form.role,
+          status: form.status,
+        }
+      );
+
+      setEditingUser(null);
+
+      fetchData();
+
+      alert("Cập nhật thành công!");
+    } catch (error) {
+      console.error(error);
+      alert("Lỗi cập nhật user.");
+    }
+  };
+
+  // =========================
+  // DELETE USER
+  // =========================
+
+  const deleteUser = async (userId) => {
+    const ok = confirm(
+      "Bạn có chắc muốn xóa user này?"
+    );
+
+    if (!ok) return;
+
+    try {
+      await deleteDoc(doc(db, "users", userId));
+
+      fetchData();
+
+      alert("Đã xóa user.");
+    } catch (error) {
+      console.error(error);
+      alert("Lỗi xóa user.");
+    }
+  };
 
   return (
-    <div className="page-wrapper container">
-      <div style={{ marginBottom: "2rem" }}>
-        <h1 style={{ fontSize: "2rem" }}>Bảng Điều Khiển Tác Động Môi Trường</h1>
-        <p style={{ color: "var(--text-muted)" }}>
-          Số liệu đo lường thói quen phân loại rác và đóng góp giảm phát thải của bạn
-        </p>
+    <main className="admin-page">
+      {/* HEADER */}
+
+      <div className="admin-header">
+        <div>
+          <h1>Thống Kê Hệ Thống EcoSort AI</h1>
+
+          <p>
+            Theo dõi dữ liệu thật từ Firebase
+            Firestore.
+          </p>
+        </div>
+
+        <button
+          className="admin-btn"
+          onClick={exportReport}
+        >
+          Xuất báo cáo
+        </button>
       </div>
 
-      {/* KPI Cards Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem", marginBottom: "2rem" }}>
-        <div className="card">
-          <div style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>Tổng Lượt Quét</div>
-          <div style={{ fontSize: "2rem", fontWeight: 700, marginTop: "0.5rem" }}>{stats.total}</div>
+      {/* STATS */}
+
+      <section className="admin-stats">
+        <div className="admin-stat-card">
+          <span>📷</span>
+
+          <p>Tổng lượt quét</p>
+
+          <h2>{totalScans}</h2>
         </div>
 
-        <div className="card">
-          <div style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>Tỷ Lệ Tái Chế</div>
-          <div style={{ fontSize: "2rem", fontWeight: 700, marginTop: "0.5rem", color: "var(--recyclable)" }}>
-            {recyclePercent}%
+        <div className="admin-stat-card">
+          <span>♻️</span>
+
+          <p>Rác tái chế</p>
+
+          <h2>{recyclable}</h2>
+        </div>
+
+        <div className="admin-stat-card">
+          <span>🗑️</span>
+
+          <p>Không tái chế</p>
+
+          <h2>{nonRecyclable}</h2>
+        </div>
+
+        <div className="admin-stat-card">
+          <span>☣️</span>
+
+          <p>Rác nguy hại</p>
+
+          <h2>{hazardous}</h2>
+        </div>
+      </section>
+
+      {/* GRID */}
+
+      <section className="admin-grid">
+        {/* LEFT */}
+
+        <div className="admin-card">
+          <h2>Phân loại lượt quét</h2>
+
+          <div className="progress-row">
+            <div>
+              <b>Rác tái chế</b>
+
+              <p>
+                Chai nhựa, lon, giấy,
+                carton...
+              </p>
+            </div>
+
+            <span>{recyclable}</span>
+          </div>
+
+          <div className="progress-row">
+            <div>
+              <b>Rác không tái chế</b>
+
+              <p>
+                Túi nilon, ống hút,
+                ly nhựa bẩn...
+              </p>
+            </div>
+
+            <span>{nonRecyclable}</span>
+          </div>
+
+          <div className="progress-row">
+            <div>
+              <b>Rác nguy hại</b>
+
+              <p>
+                Pin, bóng đèn, bình
+                xịt hóa chất...
+              </p>
+            </div>
+
+            <span>{hazardous}</span>
+          </div>
+
+          <div className="progress-row">
+            <div>
+              <b>Không xác định</b>
+
+              <p>
+                Ảnh mờ hoặc AI chưa
+                nhận diện được.
+              </p>
+            </div>
+
+            <span>{unknown}</span>
           </div>
         </div>
 
-        <div className="card">
-          <div style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>Điểm Thưởng Eco-points</div>
-          <div style={{ fontSize: "2rem", fontWeight: 700, marginTop: "0.5rem", color: "#38bdf8" }}>
-            {stats.ecoPoints} pts
-          </div>
+        {/* RIGHT */}
+
+        <div className="admin-card">
+          <h2>Hoạt động gần đây</h2>
+
+          {history.length === 0 ? (
+            <p className="muted">
+              Chưa có dữ liệu hoạt động.
+            </p>
+          ) : (
+            history
+              .slice(0, 6)
+              .map((item) => (
+                <div
+                  className="activity-item"
+                  key={item.id}
+                >
+                  <div className="activity-icon">
+                    ♻️
+                  </div>
+
+                  <div>
+                    <b>
+                      {item.class ||
+                        "Unknown"}
+                    </b>
+
+                    <p>
+                      {item.email ||
+                        "guest"}{" "}
+                      •{" "}
+                      {item.type ||
+                        "Unknown"}{" "}
+                      •{" "}
+                      {item.confidence ||
+                        0}
+                      %
+                    </p>
+                  </div>
+                </div>
+              ))
+          )}
+        </div>
+      </section>
+
+      {/* USER MANAGEMENT */}
+
+      <section className="admin-card">
+        <div className="table-header">
+          <h2>Quản lý người dùng</h2>
         </div>
 
-        <div className="card">
-          <div style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>CO2 Giảm Phát Thải Ước Tính</div>
-          <div style={{ fontSize: "2rem", fontWeight: 700, marginTop: "0.5rem", color: "#f59e0b" }}>
-            {stats.co2Saved} kg
-          </div>
-        </div>
-      </div>
+        {/* EDIT FORM */}
 
-      {/* Phân bổ tỷ lệ 3 nhóm rác */}
-      <div className="card" style={{ padding: "2rem" }}>
-        <h3 style={{ marginBottom: "1.5rem" }}>Phân Bổ Theo 3 Nhóm Rác Sinh Hoạt</h3>
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+        {editingUser && (
+          <div className="user-form">
+            <input
+              placeholder="Tên"
+              value={form.name}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  name: e.target.value,
+                })
+              }
+            />
+
+            <input
+              placeholder="Email"
+              value={form.email}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  email: e.target.value,
+                })
+              }
+            />
+
+            <select
+              value={form.role}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  role: e.target.value,
+                })
+              }
+            >
+              <option value="user">
+                user
+              </option>
+
+              <option value="admin">
+                admin
+              </option>
+            </select>
+
+            <select
+              value={form.status}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  status: e.target.value,
+                })
+              }
+            >
+              <option value="Hoạt động">
+                Hoạt động
+              </option>
+
+              <option value="Khóa">
+                Khóa
+              </option>
+            </select>
+
+            <button
+              className="admin-btn small"
+              onClick={saveEdit}
+            >
+              Lưu
+            </button>
+          </div>
+        )}
+
+        {/* TABLE */}
+
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Tên</th>
+              <th>Email</th>
+              <th>Vai trò</th>
+              <th>Lượt quét</th>
+              <th>Trạng thái</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {users.length === 0 ? (
+              <tr>
+                <td colSpan="6">
+                  Chưa có dữ liệu user.
+                </td>
+              </tr>
+            ) : (
+              users.map((user) => (
+                <tr key={user.id}>
+                  <td>
+                    <b>
+                      {user.name ||
+                        "Chưa có tên"}
+                    </b>
+                  </td>
+
+                  <td>{user.email}</td>
+
+                  <td>
+                    <span className="admin-tag">
+                      {user.role ||
+                        "user"}
+                    </span>
+                  </td>
+
+                  <td>
+                    {getUserScans(user)}
+                  </td>
+
+                  <td className="success">
+                    {user.status ||
+                      "Hoạt động"}
+                  </td>
+
+                  <td>
+                    <button
+                      className="action-btn"
+                      onClick={() =>
+                        openEdit(user)
+                      }
+                    >
+                      Sửa
+                    </button>
+
+                    <button
+                      className="delete-btn"
+                      onClick={() =>
+                        deleteUser(user.id)
+                      }
+                    >
+                      Xóa
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </section>
+
+      {/* SYSTEM */}
+
+      <section className="admin-card system-section">
+        <h2>Thông tin hệ thống</h2>
+
+        <div className="system-grid">
           <div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.25rem" }}>
-              <span style={{ color: "var(--recyclable)", fontWeight: 600 }}>🟢 Rác Tái Chế (Recyclable)</span>
-              <span>{stats.recyclable} món</span>
-            </div>
-            <div style={{ height: "8px", background: "#334155", borderRadius: "4px", overflow: "hidden" }}>
-              <div style={{ width: `${stats.total ? (stats.recyclable / stats.total) * 100 : 0}%`, height: "100%", background: "var(--recyclable)" }}></div>
-            </div>
+            <b>Mô hình AI</b>
+
+            <p>
+              YOLOv8 Object Detection
+            </p>
           </div>
 
           <div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.25rem" }}>
-              <span style={{ color: "var(--non-recyclable)", fontWeight: 600 }}>⚪ Rác Không Tái Chế (Non-Recyclable)</span>
-              <span>{stats.nonRecyclable} món</span>
-            </div>
-            <div style={{ height: "8px", background: "#334155", borderRadius: "4px", overflow: "hidden" }}>
-              <div style={{ width: `${stats.total ? (stats.nonRecyclable / stats.total) * 100 : 0}%`, height: "100%", background: "var(--non-recyclable)" }}></div>
-            </div>
+            <b>Backend</b>
+
+            <p>FastAPI Python</p>
           </div>
 
           <div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.25rem" }}>
-              <span style={{ color: "var(--hazardous)", fontWeight: 600 }}>🔴 Rác Nguy Hại (Hazardous)</span>
-              <span>{stats.hazardous} món</span>
-            </div>
-            <div style={{ height: "8px", background: "#334155", borderRadius: "4px", overflow: "hidden" }}>
-              <div style={{ width: `${stats.total ? (stats.hazardous / stats.total) * 100 : 0}%`, height: "100%", background: "var(--hazardous)" }}></div>
-            </div>
+            <b>Frontend</b>
+
+            <p>ReactJS + CSS</p>
+          </div>
+
+          <div>
+            <b>Cơ sở dữ liệu</b>
+
+            <p>
+              Firebase Firestore
+            </p>
           </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
