@@ -293,6 +293,48 @@ export default function Statistics({ user }) {
         </div>
       </div>
 
+      {/* Quiz Promotion Banner */}
+      <div
+        className="glass-card card-interactive"
+        style={{
+          background: "linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(16, 185, 129, 0.06) 100%)",
+          border: "1px solid rgba(245, 158, 11, 0.25)",
+          padding: "1rem 1.5rem",
+          borderRadius: "14px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "1rem",
+          marginBottom: "2rem",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <span style={{ fontSize: "1.5rem" }}>🎮</span>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#fbbf24" }}>
+              Muốn thăng hạng danh hiệu Eco-Rank nhanh hơn?
+            </div>
+            <div style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
+              Tham gia trả lời 5 câu đố thực tế trong <strong>Trắc Nghiệm Sống Xanh</strong> để nhận ngay tới +50 điểm Eco-points!
+            </div>
+          </div>
+        </div>
+        <Link to="/quiz">
+          <button
+            className="btn-primary"
+            style={{
+              padding: "0.45rem 1.15rem",
+              fontSize: "0.85rem",
+              borderRadius: "8px",
+              background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+            }}
+          >
+            Làm Bài Trắc Nghiệm
+          </button>
+        </Link>
+      </div>
+
       {/* KPI Cards Grid */}
       <div
         style={{

@@ -13,6 +13,7 @@ import Scan from "./pages/Scan";
 import History from "./pages/History";
 import Statistics from "./pages/Statistics";
 import Guide from "./pages/Guide";
+import Quiz from "./pages/Quiz";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
@@ -81,6 +82,7 @@ export default function App() {
           <Route path="/history" element={<History user={user} />} />
           <Route path="/statistics" element={<Statistics user={user} />} />
           <Route path="/guide" element={<Guide />} />
+          <Route path="/quiz" element={<Quiz user={user} />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Routes>
@@ -141,6 +143,7 @@ export default function App() {
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", fontSize: "0.85rem" }}>
                 <Link to="/scan" style={{ color: "var(--text-muted)" }}>Quét Rác Qua Camera / Ảnh</Link>
                 <Link to="/guide" style={{ color: "var(--text-muted)" }}>Bách Khoa 22 Loại Rác</Link>
+                <Link to="/quiz" style={{ color: "var(--text-muted)" }}>Trắc Nghiệm Sống Xanh</Link>
                 <Link to="/statistics" style={{ color: "var(--text-muted)" }}>Thống Kê Điểm Sống Xanh</Link>
                 <Link to="/history" style={{ color: "var(--text-muted)" }}>Lịch Sử Cá Nhân</Link>
               </div>

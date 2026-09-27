@@ -13,7 +13,8 @@ import {
   CheckCircle2, 
   TreePine,
   Layers,
-  Clock
+  Clock,
+  Trophy
 } from "lucide-react";
 
 /**
@@ -403,6 +404,74 @@ export default function Home() {
               <strong>Ví dụ tiêu biểu:</strong> Pin, bóng đèn huỳnh quang, bình xịt nén, can hóa chất.
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Eco Quiz Highlight Section */}
+      <section style={{ margin: "4rem 0" }}>
+        <div
+          className="glass-card card-interactive"
+          style={{
+            background: "linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(16, 185, 129, 0.08) 100%)",
+            border: "1px solid rgba(245, 158, 11, 0.3)",
+            padding: "2.25rem 2rem",
+            borderRadius: "var(--radius-xl)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: "1.5rem",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", maxWidth: "620px" }}>
+            <div
+              style={{
+                width: "64px",
+                height: "64px",
+                borderRadius: "18px",
+                background: "rgba(245, 158, 11, 0.15)",
+                color: "#f59e0b",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                boxShadow: "0 0 25px rgba(245, 158, 11, 0.2)",
+              }}
+            >
+              <Trophy size={32} />
+            </div>
+
+            <div>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", fontSize: "0.8rem", fontWeight: 700, color: "#fbbf24", marginBottom: "0.25rem" }}>
+                <span>🎮 MINI-GAME MỚI</span>
+                <span>•</span>
+                <span>TÍCH LŨY +50 ECO-POINTS</span>
+              </div>
+              <h3 style={{ fontSize: "1.45rem", fontWeight: 800, marginBottom: "0.35rem" }}>
+                Thử Tài Trắc Nghiệm Nhanh Sống Xanh
+              </h3>
+              <p style={{ color: "var(--text-muted)", fontSize: "0.92rem", lineHeight: 1.5, margin: 0 }}>
+                Bạn đã tự tin phân biệt hộp xốp cơm, pin tiểu, lon nhôm hay chai PET? Hãy thử sức với 5 câu đố tình huống thực tế để nhận điểm thưởng thăng hạng ngay!
+              </p>
+            </div>
+          </div>
+
+          <Link to="/quiz">
+            <button
+              className="btn-primary"
+              style={{
+                padding: "0.85rem 1.85rem",
+                borderRadius: "12px",
+                fontSize: "0.95rem",
+                fontWeight: 700,
+                background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+                boxShadow: "0 4px 18px rgba(245, 158, 11, 0.35)",
+              }}
+            >
+              <Trophy size={18} />
+              Tham Gia Thử Thách
+            </button>
+          </Link>
         </div>
       </section>
 

@@ -13,7 +13,8 @@ import {
   UserPlus, 
   Menu, 
   X,
-  User
+  User,
+  Trophy
 } from "lucide-react";
 
 /**
@@ -36,6 +37,7 @@ export default function Navbar({ user }) {
   const navLinks = [
     { to: "/scan", label: "Quét Rác AI", icon: <Scan size={18} /> },
     { to: "/guide", label: "Cẩm Nang", icon: <BookOpen size={18} /> },
+    { to: "/quiz", label: "Trắc Nghiệm", icon: <Trophy size={18} /> },
     { to: "/history", label: "Lịch Sử", icon: <History size={18} /> },
     { to: "/statistics", label: "Thống Kê", icon: <BarChart3 size={18} /> },
   ];
