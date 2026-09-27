@@ -471,31 +471,6 @@ th, td {
   font-size: 24px;
 }
 
-.faq {
-  max-width: 850px;
-  margin: 70px auto;
-}
-
-.faq h2 {
-  text-align: center;
-}
-
-details {
-  background: white;
-  border-radius: 22px;
-  padding: 24px;
-  margin-bottom: 16px;
-  border: 1px solid #f1f5f9;
-}
-
-summary {
-  font-weight: 800;
-  cursor: pointer;
-}
-
-details p {
-  color: #64748b;
-}
 
 @media (max-width: 950px) {
   .hero,
@@ -745,51 +720,125 @@ details p {
 .faq {
   max-width: 900px;
   margin: 70px auto;
+  padding: 0 16px;
 }
 
 .faq h2 {
   text-align: center;
   font-size: 34px;
+  font-weight: 800;
   margin-bottom: 32px;
+  color: #0f172a;
 }
 
+.faq-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Card chứa câu hỏi */
+.faq-card,
 .faq details {
   background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 22px;
-  padding: 24px 28px;
-  margin-bottom: 16px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
-  transition: 0.3s ease;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+  transition: all 0.25s ease;
+  overflow: hidden;
 }
 
+.faq-card:hover,
 .faq details:hover {
   border-color: #86efac;
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.08);
 }
 
+.faq-card.active,
+.faq details[open] {
+  border-color: #4ade80;
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.1);
+}
+
+/* Nút bấm câu hỏi bao trùm toàn bộ chiều rộng */
+.faq-question-btn,
 .faq summary {
-  font-weight: 800;
-  color: #0f172a;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 28px;
+  background: transparent;
+  border: none;
   cursor: pointer;
+  text-align: left;
   list-style: none;
+  font-family: inherit;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-question-text {
   font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.5;
+  flex: 1;
 }
 
-.faq summary::after {
-  content: "⌄";
-  float: right;
-  font-size: 22px;
-  color: #22c55e;
+/* Khung tròn chứa icon mũi tên - căn giữa 100% không bao giờ bị lệch */
+.faq-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f0fdf4;
+  flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s ease;
 }
 
-.faq details[open] summary::after {
-  content: "⌃";
+.faq-icon-wrapper svg {
+  display: block;
 }
 
+.faq-icon-wrapper.rotated,
+.faq details[open] .faq-icon-wrapper {
+  transform: rotate(180deg);
+  background: #dcfce7;
+}
+
+/* Khung hiển thị câu trả lời đầy đủ, thoáng đãng */
+.faq-answer-box {
+  padding: 0 28px 24px 28px;
+  animation: faqFadeIn 0.25s ease-out;
+}
+
+.faq-answer-box p,
 .faq details p {
-  margin-top: 16px;
-  color: #64748b;
+  color: #475569;
   line-height: 1.8;
+  font-size: 15px;
+  margin: 0;
+  padding-top: 14px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+@keyframes faqFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Responsive */

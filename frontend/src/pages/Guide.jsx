@@ -1,4 +1,56 @@
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
+
+const FAQ_LIST = [
+  {
+    id: 1,
+    question: "Hệ thống EcoSort AI dùng để làm gì?",
+    answer:
+      "EcoSort AI là ứng dụng thông minh sử dụng Trí tuệ Nhân tạo (AI) và Thị giác máy tính (YOLOv8) để tự động nhận diện 22 loại rác thải sinh hoạt phổ biến từ hình ảnh tải lên hoặc trực tiếp qua camera webcam. Sau khi nhận diện, hệ thống phân loại chính xác thành 3 nhóm quy chuẩn: Rác tái chế (Xanh lục), Rác không tái chế / Sinh hoạt (Xám) và Rác nguy hại (Đỏ), kèm hướng dẫn dọn dẹp và xử lý chi tiết trước khi vứt rác.",
+  },
+  {
+    id: 2,
+    question: "Kết quả nhận diện có lưu lại không?",
+    answer:
+      "Có. Khi bạn đăng nhập tài khoản, toàn bộ lịch sử quét rác (bao gồm hình ảnh, tên loại rác, nhóm phân loại, độ tin cậy AI và thời gian) sẽ được tự động đồng bộ và lưu trữ an toàn trên Cloud Firestore. Bạn có thể tra cứu lại bất cứ lúc nào ở mục 'Lịch Sử' và theo dõi biểu đồ phân bổ rác cùng điểm thưởng sống xanh (Eco-points) tại mục 'Thống Kê'.",
+  },
+  {
+    id: 3,
+    question: "Cần làm gì nếu AI nhận diện sai hoặc không nhận diện được?",
+    answer:
+      "Nếu kết quả chưa chính xác hoặc hiển thị thông báo 'Không nhận diện được', bạn nên: (1) Đảm bảo môi trường chụp đủ ánh sáng, tránh bóng tối hoặc ngược sáng; (2) Đặt một vật thể rác rõ ràng ở trung tâm khung hình, tránh để quá nhiều đồ vật lẫn lộn; (3) Chụp trực diện rõ nét và lau sạch ống kính camera.",
+  },
+  {
+    id: 4,
+    question: "Rác nguy hại xử lý như thế nào?",
+    answer:
+      "Rác nguy hại (pin các loại, bóng đèn huỳnh quang, bình xịt hóa chất nén khí, chai lọ hóa chất tẩy rửa độc hại, thùng sơn) chứa hóa chất độc hại và kim loại nặng. Bạn cần: Tuyệt đối không bỏ chung với rác sinh hoạt thông thường; Dán băng dính cách điện hai cực của pin; Bọc mềm bóng đèn để tránh rơi vỡ phát tán thủy ngân; và mang đến các điểm thu gom rác thải nguy hại chuyên biệt tại địa phương.",
+  },
+  {
+    id: 5,
+    question: "Tôi có cần tạo tài khoản để sử dụng tính năng quét rác không?",
+    answer:
+      "Không bắt buộc. Bạn hoàn toàn có thể sử dụng ngay tính năng quét rác AI trên trang web mà không cần đăng nhập. Tuy nhiên, việc đăng ký tài khoản miễn phí sẽ giúp bạn lưu lại nhật ký quét cá nhân, tích lũy điểm thưởng xanh và theo dõi báo cáo tác động giảm phát thải CO2 của mình.",
+  },
+  {
+    id: 6,
+    question: "Quy chuẩn 3 mã màu của EcoSort AI quy định như thế nào?",
+    answer:
+      "Hệ thống áp dụng 3 nhóm màu trực quan theo chuẩn phân loại rác tại nguồn: 🟢 Màu Xanh lục (#22c55e): Rác Tái Chế (chai nhựa sạch, lon kim loại, bìa carton, giấy sạch); ⚪ Màu Xám (#64748b): Rác Không Tái Chế / Rác Sinh Hoạt (túi nilon bẩn, hộp xốp dính dầu mỡ, ống hút nhựa, dao thìa nhựa dùng một lần); 🔴 Màu Đỏ (#ef4444): Rác Nguy Hại (pin, bóng đèn, hóa chất).",
+  },
+];
+
 export default function Guide() {
+  // Quản lý trạng thái mở/đóng của từng câu hỏi (mặc định mở câu 1)
+  const [openFaqs, setOpenFaqs] = useState({ 1: true });
+
+  const toggleFaq = (id) => {
+    setOpenFaqs((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
   return (
     <main className="page">
       <header className="guide-header">
@@ -83,37 +135,35 @@ export default function Guide() {
       <section className="faq">
         <h2>Câu hỏi thường gặp</h2>
 
-        <details>
-          <summary>Hệ thống EcoSort AI dùng để làm gì?</summary>
-          <p>
-            Hệ thống dùng AI và Computer Vision để nhận diện rác từ hình ảnh,
-            sau đó phân loại thành rác tái chế, không tái chế hoặc nguy hại.
-          </p>
-        </details>
+        <div className="faq-container">
+          {FAQ_LIST.map((item) => {
+            const isOpen = !!openFaqs[item.id];
+            return (
+              <div
+                key={item.id}
+                className={`faq-card ${isOpen ? "active" : ""}`}
+              >
+                <button
+                  type="button"
+                  className="faq-question-btn"
+                  onClick={() => toggleFaq(item.id)}
+                  aria-expanded={isOpen}
+                >
+                  <span className="faq-question-text">{item.question}</span>
+                  <span className={`faq-icon-wrapper ${isOpen ? "rotated" : ""}`}>
+                    <ChevronDown size={20} color="#22c55e" strokeWidth={2.5} />
+                  </span>
+                </button>
 
-        <details>
-          <summary>Kết quả nhận diện có lưu lại không?</summary>
-          <p>
-            Có. Sau khi quét thành công, kết quả sẽ được lưu ở trang Lịch Sử
-            để người dùng xem lại.
-          </p>
-        </details>
-
-        <details>
-          <summary>Cần làm gì nếu AI nhận diện sai?</summary>
-          <p>
-            Người dùng nên chụp lại ảnh rõ hơn, đủ sáng hơn và để vật thể rác
-            nằm ở trung tâm khung hình.
-          </p>
-        </details>
-
-        <details>
-          <summary>Rác nguy hại xử lý như thế nào?</summary>
-          <p>
-            Pin, bóng đèn, bình xịt hóa chất và chai hóa chất cần được để riêng,
-            không bỏ chung với rác sinh hoạt.
-          </p>
-        </details>
+                {isOpen && (
+                  <div className="faq-answer-box">
+                    <p>{item.answer}</p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </section>
     </main>
   );
