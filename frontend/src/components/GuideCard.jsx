@@ -1,35 +1,44 @@
-import React from "react";
+import React, { useState } from "react";
+import { Recycle, Flame, AlertTriangle, Clock, ChevronDown, ChevronUp, CheckCircle2 } from "lucide-react";
 
 /**
- * Component: Thẻ hiển thị một loại rác trong cẩm nang
+ * Component: Thẻ hiển thị một loại rác trong cẩm nang EcoSort AI
  * @param {Object} props.item
- * { id, name, class, type, badge, guide, color }
+ * { id, name, class, type, badge, guide, decomposition, tip }
  */
 export default function GuideCard({ item }) {
+  const [expanded, setExpanded] = useState(false);
+
   const getTypeInfo = (type) => {
     switch (type) {
       case "RECYCLABLE":
         return {
-          label: item.badge || "Có thể tái chế",
+          label: item.badge || "Rác Tái Chế",
           color: "var(--recyclable)",
-          bg: "#ecfdf5",
-          icon: "♻️",
+          bg: "var(--recyclable-bg)",
+          border: "var(--recyclable-border)",
+          icon: <Recycle size={14} />,
+          binBadge: "Thùng Xanh Lá",
         };
 
       case "HAZARDOUS":
         return {
-          label: item.badge || "Rác nguy hại",
+          label: item.badge || "Rác Nguy Hại",
           color: "var(--hazardous)",
-          bg: "#fef2f2",
-          icon: "⚠️",
+          bg: "var(--hazardous-bg)",
+          border: "var(--hazardous-border)",
+          icon: <AlertTriangle size={14} />,
+          binBadge: "Thùng Đỏ / Cam",
         };
 
       default:
         return {
-          label: item.badge || "Không tái chế",
+          label: item.badge || "Rác Sinh Hoạt",
           color: "var(--non-recyclable)",
-          bg: "#f8fafc",
-          icon: "🗑️",
+          bg: "var(--non-recyclable-bg)",
+          border: "var(--non-recyclable-border)",
+          icon: <Flame size={14} />,
+          binBadge: "Thùng Xám / Đen",
         };
     }
   };
@@ -38,127 +47,149 @@ export default function GuideCard({ item }) {
 
   return (
     <div
-      className="card guide-card"
+      className="glass-card card-interactive"
       style={{
         position: "relative",
         overflow: "hidden",
-        padding: "1.25rem",
-        borderRadius: "16px",
-        border: "1px solid #e5e7eb",
-        background: "#ffffff",
+        padding: "1.35rem",
+        borderRadius: "var(--radius-lg)",
+        border: "1px solid var(--border-color)",
+        borderTop: `4px solid ${typeInfo.color}`,
         display: "flex",
         flexDirection: "column",
-        minHeight: "210px",
-        transition: "all 0.25s ease",
+        justifyContent: "space-between",
+        minHeight: "220px",
+        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
       }}
     >
-      {/* Thanh màu phía trên */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: "4px",
-          background: typeInfo.color,
-        }}
-      />
-
-      {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "0.75rem",
-          marginBottom: "1rem",
-        }}
-      >
-        {/* Badge */}
-        <span
+      <div>
+        {/* Header Badges */}
+        <div
           style={{
-            display: "inline-flex",
+            display: "flex",
+            justifyContent: "space-between",
             alignItems: "center",
-            gap: "0.35rem",
-            fontSize: "0.75rem",
-            fontWeight: 700,
-            padding: "0.4rem 0.7rem",
-            borderRadius: "999px",
-            background: typeInfo.bg,
-            color: typeInfo.color,
-            border: `1px solid ${typeInfo.color}25`,
-            whiteSpace: "nowrap",
+            gap: "0.5rem",
+            marginBottom: "0.85rem",
           }}
         >
-          <span>{typeInfo.icon}</span>
-          {typeInfo.label}
-        </span>
+          {/* Badge loại rác */}
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.35rem",
+              fontSize: "0.75rem",
+              fontWeight: 700,
+              padding: "0.3rem 0.65rem",
+              borderRadius: "999px",
+              background: typeInfo.bg,
+              color: typeInfo.color,
+              border: `1px solid ${typeInfo.border}`,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {typeInfo.icon}
+            {typeInfo.label}
+          </span>
 
-        {/* Class */}
-        <code
-          style={{
-            fontSize: "0.7rem",
-            fontWeight: 600,
-            color: "#94a3b8",
-            background: "#f8fafc",
-            padding: "0.3rem 0.5rem",
-            borderRadius: "6px",
-          }}
-        >
-          {item.class}
-        </code>
-      </div>
+          {/* YOLOv8 class name code */}
+          <code
+            style={{
+              fontSize: "0.72rem",
+              fontWeight: 600,
+              color: "var(--text-muted)",
+              background: "rgba(15, 23, 42, 0.6)",
+              border: "1px solid var(--border-color)",
+              padding: "0.2rem 0.45rem",
+              borderRadius: "6px",
+            }}
+          >
+            {item.class}
+          </code>
+        </div>
 
-      {/* Content */}
-      <div style={{ flex: 1 }}>
+        {/* Item Title */}
         <h3
           style={{
-            fontSize: "1.15rem",
+            fontSize: "1.18rem",
             fontWeight: 700,
-            color: "#1e293b",
-            margin: "0 0 0.65rem",
-            lineHeight: 1.3,
+            color: "var(--text-main)",
+            margin: "0 0 0.5rem 0",
+            lineHeight: 1.35,
           }}
         >
           {item.name}
         </h3>
 
+        {/* Instructions */}
         <p
           style={{
-            fontSize: "0.875rem",
-            color: "#64748b",
+            fontSize: "0.88rem",
+            color: "var(--text-muted)",
             lineHeight: 1.6,
             margin: 0,
           }}
         >
           {item.guide}
         </p>
+
+        {/* Expandable Tips */}
+        {expanded && item.tip && (
+          <div
+            style={{
+              marginTop: "0.85rem",
+              padding: "0.75rem",
+              background: "rgba(15, 23, 42, 0.7)",
+              borderRadius: "8px",
+              border: "1px solid var(--border-color)",
+              fontSize: "0.82rem",
+              color: "var(--primary-light)",
+              animation: "fadeIn 0.25s ease",
+            }}
+          >
+            <strong>💡 Mẹo xử lý nhanh:</strong> {item.tip}
+          </div>
+        )}
       </div>
 
-      {/* Footer */}
+      {/* Footer Info */}
       <div
         style={{
-          marginTop: "1rem",
-          paddingTop: "0.8rem",
-          borderTop: "1px solid #f1f5f9",
+          marginTop: "1.25rem",
+          paddingTop: "0.85rem",
+          borderTop: "1px solid var(--border-color)",
           display: "flex",
           alignItems: "center",
-          gap: "0.4rem",
-          fontSize: "0.75rem",
-          color: "#94a3b8",
+          justifyContent: "space-between",
+          fontSize: "0.78rem",
+          color: "var(--text-muted)",
         }}
       >
-        <span
-          style={{
-            width: "7px",
-            height: "7px",
-            borderRadius: "50%",
-            background: typeInfo.color,
-            display: "inline-block",
-          }}
-        />
+        {/* Thời gian phân hủy nếu có */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+          <Clock size={14} style={{ color: typeInfo.color }} />
+          <span>{item.decomposition || "Đang cập nhật"}</span>
+        </div>
 
-        Hướng dẫn phân loại
+        {item.tip && (
+          <button
+            type="button"
+            onClick={() => setExpanded(!expanded)}
+            style={{
+              background: "transparent",
+              color: "var(--text-muted)",
+              fontSize: "0.75rem",
+              padding: "0.2rem 0.4rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.2rem",
+            }}
+          >
+            {expanded ? "Thu gọn" : "Xem mẹo"}
+            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
+        )}
       </div>
     </div>
   );
