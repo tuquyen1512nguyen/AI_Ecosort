@@ -77,6 +77,9 @@ export default function Statistics({ user }) {
 
   useEffect(() => {
     async function calculateStats() {
+      const bonusPoints = parseInt(localStorage.getItem("ecosort_bonus_points") || "0", 10);
+      const feedbackReports = JSON.parse(localStorage.getItem("ecosort_feedback_reports") || "[]");
+
       if (!user) {
         // Dữ liệu mẫu minh họa cho khách tham quan chưa đăng nhập
         setStats({
@@ -84,8 +87,10 @@ export default function Statistics({ user }) {
           recyclable: 7,
           nonRecyclable: 3,
           hazardous: 2,
-          ecoPoints: 106,
+          ecoPoints: 106 + bonusPoints,
           co2Saved: "2.05",
+          feedbackCount: feedbackReports.length,
+          bonusPoints,
         });
         setLoading(false);
         return;
@@ -109,8 +114,8 @@ export default function Statistics({ user }) {
           else nonRec++;
         });
 
-        // Công thức tính điểm Eco-points & lượng CO2 giảm phát thải
-        const points = rec * 10 + nonRec * 2 + haz * 15;
+        // Công thức tính điểm Eco-points & lượng CO2 giảm phát thải kèm điểm thưởng đóng góp
+        const points = rec * 10 + nonRec * 2 + haz * 15 + bonusPoints;
         const co2 = (rec * 0.15 + haz * 0.5).toFixed(2);
 
         setStats({
@@ -120,6 +125,8 @@ export default function Statistics({ user }) {
           hazardous: haz,
           ecoPoints: points,
           co2Saved: co2,
+          feedbackCount: feedbackReports.length,
+          bonusPoints,
         });
       } catch (err) {
         console.error("Lỗi tính toán số liệu thống kê:", err);
@@ -268,9 +275,15 @@ export default function Statistics({ user }) {
             <div style={{ fontSize: "2rem", fontWeight: 900, color: "var(--primary)" }}>
               {stats.ecoPoints} <span style={{ fontSize: "1rem" }}>pts</span>
             </div>
-            <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", marginTop: "0.2rem" }}>
-              Mục tiêu tiếp theo: {rank.nextTier} pts
-            </div>
+            {stats.feedbackCount > 0 ? (
+              <div style={{ fontSize: "0.75rem", color: "#fbbf24", marginTop: "0.2rem", fontWeight: 600 }}>
+                🎯 {stats.feedbackCount} báo cáo AI (+{stats.bonusPoints} pts)
+              </div>
+            ) : (
+              <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", marginTop: "0.2rem" }}>
+                Mục tiêu tiếp theo: {rank.nextTier} pts
+              </div>
+            )}
           </div>
         </div>
 

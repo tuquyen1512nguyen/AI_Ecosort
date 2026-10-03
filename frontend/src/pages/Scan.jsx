@@ -357,7 +357,7 @@ export default function Scan({ user }) {
       )}
 
       {/* Hiển Thị Kết Quả Phân Loại */}
-      <ResultCard result={result} loading={loading} onReset={handleReset} />
+      <ResultCard result={result} loading={loading} onReset={handleReset} user={user} />
     </div>
   );
 }

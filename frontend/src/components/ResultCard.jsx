@@ -12,8 +12,10 @@ import {
   Check, 
   Sparkles,
   Info,
-  Loader2
+  Loader2,
+  Flag
 } from "lucide-react";
+import ReportModal from "./ReportModal";
 
 // Từ điển ánh xạ tên tiếng Việt chuẩn mực cho 22 lớp YOLOv8
 const VIETNAMESE_NAMES = {
@@ -44,8 +46,10 @@ const VIETNAMESE_NAMES = {
 /**
  * Thẻ Kết Quả Phân Loại Rác Thông Minh Bằng AI (ResultCard)
  */
-export default function ResultCard({ result, loading, onReset }) {
+export default function ResultCard({ result, loading, onReset, user }) {
   const [copied, setCopied] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [hasReported, setHasReported] = useState(false);
 
   if (loading) {
     return (
@@ -395,7 +399,7 @@ export default function ResultCard({ result, loading, onReset }) {
           flexWrap: "wrap",
         }}
       >
-        <div style={{ display: "flex", gap: "0.6rem" }}>
+        <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
           <button
             type="button"
             onClick={handleCopy}
@@ -416,6 +420,44 @@ export default function ResultCard({ result, loading, onReset }) {
               Tra Cứu Thêm
             </button>
           </Link>
+
+          {hasReported ? (
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.4rem",
+                padding: "0.5rem 0.9rem",
+                borderRadius: "8px",
+                background: "rgba(16, 185, 129, 0.12)",
+                border: "1px solid rgba(16, 185, 129, 0.3)",
+                color: "var(--primary-light)",
+                fontSize: "0.85rem",
+                fontWeight: 600,
+              }}
+            >
+              <CheckCircle2 size={15} />
+              <span>Đã Báo Cáo (+5 pts)</span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowReportModal(true)}
+              className="btn-secondary"
+              style={{
+                padding: "0.5rem 0.9rem",
+                fontSize: "0.85rem",
+                borderRadius: "8px",
+                color: "#fbbf24",
+                borderColor: "rgba(245, 158, 11, 0.35)",
+                background: "rgba(245, 158, 11, 0.08)",
+              }}
+              title="Báo cáo nếu AI nhận diện sai vật thể hoặc sai nhóm phân loại"
+            >
+              <Flag size={15} />
+              <span>Báo Cáo Nhận Diện Sai</span>
+            </button>
+          )}
         </div>
 
         {onReset && (
@@ -429,6 +471,15 @@ export default function ResultCard({ result, loading, onReset }) {
           </button>
         )}
       </div>
+
+      {/* Modal Báo Cáo Nhận Diện Sai */}
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        prediction={result}
+        user={user}
+        onSuccess={() => setHasReported(true)}
+      />
     </div>
   );
 }

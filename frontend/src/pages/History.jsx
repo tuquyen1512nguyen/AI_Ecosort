@@ -278,7 +278,7 @@ export default function History({ user }) {
       ) : (
         <div>
           {filteredList.map((item) => (
-            <HistoryItem key={item.id} item={item} />
+            <HistoryItem key={item.id} item={item} user={user} />
           ))}
         </div>
       )}

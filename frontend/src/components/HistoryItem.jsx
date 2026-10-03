@@ -1,5 +1,6 @@
-import React from "react";
-import { Recycle, Flame, AlertTriangle, Clock, Calendar, CheckCircle2 } from "lucide-react";
+import React, { useState } from "react";
+import { Recycle, Flame, AlertTriangle, Clock, Calendar, CheckCircle2, Flag } from "lucide-react";
+import ReportModal from "./ReportModal";
 
 // Từ điển tên tiếng Việt
 const VIETNAMESE_NAMES = {
@@ -30,7 +31,9 @@ const VIETNAMESE_NAMES = {
 /**
  * Component Thẻ Lịch Sử Phân Loại Cá Nhân
  */
-export default function HistoryItem({ item }) {
+export default function HistoryItem({ item, user }) {
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reported, setReported] = useState(false);
   const formattedTime = item.createdAt?.toDate
     ? item.createdAt.toDate().toLocaleString("vi-VN", {
         day: "2-digit",
@@ -133,7 +136,58 @@ export default function HistoryItem({ item }) {
           <Calendar size={12} />
           {formattedTime}
         </div>
+
+        {reported ? (
+          <span style={{ fontSize: "0.72rem", color: "var(--primary-light)", display: "flex", alignItems: "center", gap: "0.25rem", marginTop: "0.2rem" }}>
+            <CheckCircle2 size={12} /> Đã báo lỗi
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowReportModal(true)}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "var(--text-dim)",
+              fontSize: "0.72rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.25rem",
+              cursor: "pointer",
+              padding: "2px 6px",
+              borderRadius: "4px",
+              marginTop: "0.2rem",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = "#fbbf24";
+              e.currentTarget.style.background = "rgba(245, 158, 11, 0.1)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = "var(--text-dim)";
+              e.currentTarget.style.background = "transparent";
+            }}
+            title="Báo cáo nếu kết quả nhận diện này bị sai"
+          >
+            <Flag size={11} />
+            <span>Báo lỗi AI</span>
+          </button>
+        )}
       </div>
+
+      {/* Modal Báo Cáo Nhận Diện Sai */}
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        prediction={{
+          className: item.className,
+          wasteType: item.wasteType,
+          confidence: item.confidence,
+          guide: item.guide,
+        }}
+        user={user}
+        onSuccess={() => setReported(true)}
+      />
     </div>
   );
 }
