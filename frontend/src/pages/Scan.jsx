@@ -5,10 +5,20 @@ import { db } from "../firebase";
 import { predictWasteImage } from "../api/wasteAPI";
 import UploadCard from "../components/UploadCard";
 import ResultCard from "../components/ResultCard";
+import { 
+  Camera, 
+  UploadCloud, 
+  Sparkles, 
+  RotateCcw, 
+  AlertCircle,
+  ScanLine,
+  Zap,
+  Info
+} from "lucide-react";
 
 /**
- * Trang Quét Rác AI (Scan Page Skeleton)
- * Trung tâm tương tác: Hỗ trợ chuyển đổi giữa Upload ảnh & Quét Webcam, gọi API YOLOv8 và đồng bộ Firestore
+ * Trang Quét Rác AI (EcoSort AI Scanner)
+ * Trung tâm nhận diện: Hỗ trợ Upload ảnh & Quét Webcam trực tiếp qua YOLOv8
  */
 export default function Scan({ user }) {
   const webcamRef = useRef(null);
@@ -17,13 +27,16 @@ export default function Scan({ user }) {
   const [mode, setMode] = useState("upload"); // "upload" | "webcam"
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [selectedFileName, setSelectedFileName] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [facingMode, setFacingMode] = useState("environment");
 
   // Handler: Chọn tệp ảnh tải lên
   const handleFileSelect = (file) => {
     setSelectedFile(file);
+    setSelectedFileName(file.name || "waste_image.jpg");
     setPreviewUrl(URL.createObjectURL(file));
     setResult(null);
     setErrorMessage("");
@@ -35,13 +48,27 @@ export default function Scan({ user }) {
     const imageSrc = webcamRef.current.getScreenshot();
     if (!imageSrc) return;
 
-    // Chuyển chuỗi Base64 sang đối tượng File
-    const fetchRes = await fetch(imageSrc);
-    const blob = await fetchRes.blob();
-    const file = new File([blob], "webcam-capture.jpg", { type: "image/jpeg" });
+    try {
+      const fetchRes = await fetch(imageSrc);
+      const blob = await fetchRes.blob();
+      const file = new File([blob], `webcam_${Date.now()}.jpg`, { type: "image/jpeg" });
 
-    setSelectedFile(file);
-    setPreviewUrl(imageSrc);
+      setSelectedFile(file);
+      setSelectedFileName(file.name);
+      setPreviewUrl(imageSrc);
+      setResult(null);
+      setErrorMessage("");
+    } catch (err) {
+      console.error("Lỗi khi xử lý khung hình webcam:", err);
+      setErrorMessage("Không thể chụp khung hình từ camera.");
+    }
+  };
+
+  // Handler: Reset lại trạng thái để quét vật thể mới
+  const handleReset = () => {
+    setSelectedFile(null);
+    setSelectedFileName("");
+    setPreviewUrl(null);
     setResult(null);
     setErrorMessage("");
   };
@@ -75,7 +102,7 @@ export default function Scan({ user }) {
         });
       }
     } catch (err) {
-      setErrorMessage("Không thể kết nối máy chủ AI hoặc xử lý ảnh thất bại.");
+      setErrorMessage("Không thể kết nối máy chủ AI backend hoặc xử lý ảnh thất bại. Hãy chắc chắn backend FastAPI đang chạy tại http://127.0.0.1:8000.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -83,76 +110,225 @@ export default function Scan({ user }) {
   };
 
   return (
-    <div className="page-wrapper container" style={{ maxWidth: "800px" }}>
+    <div className="page-wrapper container animate-fade-in" style={{ maxWidth: "860px" }}>
+      {/* Page Header */}
       <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-        <h1 style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>Nhận Diện & Phân Loại Rác</h1>
-        <p style={{ color: "var(--text-muted)" }}>
-          Chụp ảnh hoặc tải lên hình ảnh rác để AI tự động phân tích trong giây lát
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.45rem",
+            padding: "0.35rem 0.95rem",
+            borderRadius: "9999px",
+            background: "rgba(16, 185, 129, 0.12)",
+            border: "1px solid rgba(16, 185, 129, 0.3)",
+            color: "var(--primary-light)",
+            fontSize: "0.82rem",
+            fontWeight: 600,
+            marginBottom: "0.85rem",
+          }}
+        >
+          <Sparkles size={15} />
+          <span>YOLOv8 Nano Inference Engine</span>
+        </div>
+
+        <h1 style={{ fontSize: "2.35rem", fontWeight: 800, marginBottom: "0.5rem" }}>
+          Nhận Diện & Phân Loại Rác
+        </h1>
+        <p style={{ color: "var(--text-muted)", fontSize: "0.98rem", maxWidth: "600px", margin: "0 auto" }}>
+          Tải ảnh lên hoặc hướng camera vào vật thể để AI phân tích và cung cấp hướng dẫn xử lý trong tích tắc.
         </p>
 
         {/* Tab chuyển đổi chế độ */}
-        <div style={{ display: "inline-flex", background: "#1e293b", borderRadius: "8px", padding: "4px", marginTop: "1rem" }}>
+        <div
+          style={{
+            display: "inline-flex",
+            background: "rgba(30, 41, 59, 0.7)",
+            backdropFilter: "blur(8px)",
+            border: "1px solid var(--border-color)",
+            borderRadius: "12px",
+            padding: "4px",
+            marginTop: "1.5rem",
+          }}
+        >
           <button
-            onClick={() => setMode("upload")}
+            type="button"
+            onClick={() => {
+              setMode("upload");
+              if (!result) handleReset();
+            }}
             style={{
-              padding: "0.5rem 1.25rem",
-              background: mode === "upload" ? "var(--primary)" : "transparent",
-              color: "#fff",
+              padding: "0.6rem 1.35rem",
+              borderRadius: "8px",
+              background: mode === "upload" ? "linear-gradient(135deg, #10b981, #059669)" : "transparent",
+              color: mode === "upload" ? "#ffffff" : "var(--text-muted)",
+              boxShadow: mode === "upload" ? "0 4px 12px var(--primary-glow)" : "none",
+              fontSize: "0.9rem",
             }}
           >
-            📁 Tải Ảnh Lên
+            <UploadCloud size={17} />
+            Tải Ảnh Lên
           </button>
+
           <button
-            onClick={() => setMode("webcam")}
+            type="button"
+            onClick={() => {
+              setMode("webcam");
+              if (!result) handleReset();
+            }}
             style={{
-              padding: "0.5rem 1.25rem",
-              background: mode === "webcam" ? "var(--primary)" : "transparent",
-              color: "#fff",
+              padding: "0.6rem 1.35rem",
+              borderRadius: "8px",
+              background: mode === "webcam" ? "linear-gradient(135deg, #10b981, #059669)" : "transparent",
+              color: mode === "webcam" ? "#ffffff" : "var(--text-muted)",
+              boxShadow: mode === "webcam" ? "0 4px 12px var(--primary-glow)" : "none",
+              fontSize: "0.9rem",
             }}
           >
-            📷 Quét Webcam
+            <Camera size={17} />
+            Quét Qua Camera
           </button>
         </div>
       </div>
 
       {/* Thông báo lỗi nếu có */}
       {errorMessage && (
-        <div style={{ padding: "0.75rem 1rem", backgroundColor: "rgba(239, 68, 68, 0.2)", border: "1px solid var(--hazardous)", borderRadius: "8px", marginBottom: "1.5rem", color: "#fca5a5", textAlign: "center" }}>
-          {errorMessage}
+        <div
+          style={{
+            padding: "0.85rem 1.25rem",
+            backgroundColor: "rgba(239, 68, 68, 0.15)",
+            border: "1px solid rgba(239, 68, 68, 0.4)",
+            borderRadius: "12px",
+            marginBottom: "1.5rem",
+            color: "#fca5a5",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.75rem",
+            fontSize: "0.9rem",
+            animation: "fadeIn 0.3s ease",
+          }}
+        >
+          <AlertCircle size={20} style={{ flexShrink: 0, color: "var(--hazardous)" }} />
+          <div>{errorMessage}</div>
         </div>
       )}
 
-      {/* Vùng tương tác theo Mode */}
+      {/* Vùng Tương Tác Theo Mode */}
       {mode === "upload" ? (
-        <UploadCard onFileSelect={handleFileSelect} previewUrl={previewUrl} />
+        <UploadCard
+          onFileSelect={handleFileSelect}
+          previewUrl={previewUrl}
+          selectedFileName={selectedFileName}
+        />
       ) : (
-        <div className="card" style={{ textAlign: "center" }}>
+        <div className="glass-card" style={{ textAlign: "center", padding: "1.5rem" }}>
           {previewUrl ? (
             <div>
-              <img src={previewUrl} alt="Captured preview" style={{ maxHeight: "300px", borderRadius: "8px" }} />
-              <div style={{ marginTop: "1rem" }}>
+              <div style={{ position: "relative", display: "inline-block", maxWidth: "100%" }}>
+                <img
+                  src={previewUrl}
+                  alt="Captured frame"
+                  style={{
+                    maxHeight: "360px",
+                    maxWidth: "100%",
+                    borderRadius: "var(--radius-md)",
+                    objectFit: "contain",
+                    boxShadow: "0 12px 30px rgba(0, 0, 0, 0.6)",
+                  }}
+                />
+              </div>
+
+              <div style={{ marginTop: "1.25rem" }}>
                 <button
-                  onClick={() => { setPreviewUrl(null); setSelectedFile(null); }}
-                  style={{ padding: "0.5rem 1rem", background: "#334155", color: "#fff" }}
+                  type="button"
+                  onClick={handleReset}
+                  className="btn-secondary"
+                  style={{ padding: "0.55rem 1.25rem", fontSize: "0.88rem", borderRadius: "8px" }}
                 >
-                  Chụp Lại Ảnh Khác
+                  <RotateCcw size={16} />
+                  Chụp Lại Khung Hình Khác
                 </button>
               </div>
             </div>
           ) : (
-            <div>
+            <div style={{ position: "relative", maxWidth: "560px", margin: "0 auto", overflow: "hidden", borderRadius: "16px" }}>
+              {/* Futuristic Viewfinder Reticle & Laser */}
+              <div className="viewfinder-corner corner-tl" />
+              <div className="viewfinder-corner corner-tr" />
+              <div className="viewfinder-corner corner-bl" />
+              <div className="viewfinder-corner corner-br" />
+              <div className="laser-line" />
+
               <Webcam
                 ref={webcamRef}
                 screenshotFormat="image/jpeg"
-                videoConstraints={{ facingMode: "environment" }}
-                style={{ width: "100%", maxHeight: "360px", borderRadius: "8px", objectFit: "cover" }}
+                videoConstraints={{ facingMode: facingMode }}
+                style={{
+                  width: "100%",
+                  maxHeight: "380px",
+                  borderRadius: "16px",
+                  objectFit: "cover",
+                  display: "block",
+                  background: "#0f172a",
+                }}
               />
-              <div style={{ marginTop: "1rem" }}>
+
+              {/* Status pill overlay */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: "14px",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  background: "rgba(15, 23, 42, 0.75)",
+                  backdropFilter: "blur(6px)",
+                  padding: "0.3rem 0.75rem",
+                  borderRadius: "9999px",
+                  border: "1px solid rgba(255, 255, 255, 0.15)",
+                  color: "#ffffff",
+                  fontSize: "0.75rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.4rem",
+                  zIndex: 10,
+                }}
+              >
+                <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#10b981", animation: "pulseGlow 1.5s infinite" }} />
+                <span>Đặt vật thể vào trung tâm khung ngắm</span>
+              </div>
+
+              {/* Capture controls */}
+              <div
+                style={{
+                  marginTop: "1.25rem",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "0.75rem",
+                }}
+              >
                 <button
+                  type="button"
                   onClick={handleCaptureWebcam}
-                  style={{ padding: "0.75rem 2rem", backgroundColor: "var(--primary)", color: "#fff" }}
+                  className="btn-primary btn-pill"
+                  style={{
+                    padding: "0.85rem 2.25rem",
+                    fontSize: "1.05rem",
+                    fontWeight: 700,
+                  }}
                 >
-                  📸 Chụp Khung Hình
+                  <Camera size={20} />
+                  Chụp Khung Hình
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setFacingMode((prev) => (prev === "user" ? "environment" : "user"))}
+                  className="btn-secondary btn-pill"
+                  style={{ padding: "0.85rem 1rem", fontSize: "0.85rem" }}
+                  title="Đổi camera trước/sau"
+                >
+                  <RotateCcw size={18} />
                 </button>
               </div>
             </div>
@@ -160,26 +336,28 @@ export default function Scan({ user }) {
         </div>
       )}
 
-      {/* Nút thực thi phân loại */}
-      {selectedFile && !loading && (
-        <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
+      {/* Nút Thực Thi Phân Loại */}
+      {selectedFile && !loading && !result && (
+        <div style={{ textAlign: "center", marginTop: "1.75rem" }}>
           <button
+            type="button"
             onClick={handlePredict}
+            className="btn-primary btn-pill"
             style={{
-              padding: "0.85rem 2.5rem",
-              fontSize: "1.1rem",
-              backgroundColor: "var(--primary)",
-              color: "#fff",
-              boxShadow: "0 4px 14px rgba(22, 163, 74, 0.4)",
+              padding: "1rem 3rem",
+              fontSize: "1.15rem",
+              fontWeight: 800,
+              boxShadow: "0 8px 30px var(--primary-glow)",
             }}
           >
+            <Zap size={22} />
             Phân Loại Rác Bằng AI
           </button>
         </div>
       )}
 
-      {/* Hiển thị kết quả */}
-      <ResultCard result={result} loading={loading} />
+      {/* Hiển Thị Kết Quả Phân Loại */}
+      <ResultCard result={result} loading={loading} onReset={handleReset} user={user} />
     </div>
   );
 }
