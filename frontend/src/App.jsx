@@ -1,10 +1,11 @@
+import { useEffect, useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { Routes, Route, Link } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
 import { Leaf, Heart, Shield, Cpu, ExternalLink } from "lucide-react";
 
-// Components
 import Navbar from "./components/Navbar";
 import ScrollToTop from "./components/ScrollToTop";
 
@@ -12,8 +13,13 @@ import ScrollToTop from "./components/ScrollToTop";
 import Home from "./pages/Home";
 import Scan from "./pages/Scan";
 import History from "./pages/History";
-import Statistics from "./pages/Statistics";
 import Guide from "./pages/Guide";
+import Statistics from "./pages/Statistics";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+
+import "./App.css";
+
 import Quiz from "./pages/Quiz";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -23,18 +29,37 @@ import Register from "./pages/Register";
  */
 export default function App() {
   const [user, setUser] = useState(null);
-  const [authChecking, setAuthChecking] = useState(true);
 
-  // Lắng nghe thay đổi trạng thái đăng nhập Firebase Auth
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setAuthChecking(false);
-    });
+    const savedUser = localStorage.getItem("currentUser");
 
-    return () => unsubscribe();
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
   }, []);
 
+  return (
+    <div className="app">
+      <Navbar user={user} setUser={setUser} />
+
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/guide" element={<Guide />} />
+        <Route path="/login" element={<Login setUser={setUser} />} />
+        <Route path="/register" element={<Register />} />
+
+        <Route path="/scan" element={<Scan user={user} />} />
+
+        <Route
+        path="/history"
+        element={user ? <History user={user} /> : <Navigate to="/login" />}
+        />
+
+        <Route
+        path="/statistics"
+        element={user?.role === "admin" ? <Statistics /> : <Navigate to="/" />}
+        />
+      </Routes>
   if (authChecking) {
     return (
       <div

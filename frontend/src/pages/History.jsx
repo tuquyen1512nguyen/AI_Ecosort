@@ -1,3 +1,7 @@
+import { useEffect, useState } from "react";
+
+export default function History({ user }) {
+  const [history, setHistory] = useState([]);
 import React, { useEffect, useState } from "react";
 import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
@@ -15,12 +19,10 @@ export default function History({ user }) {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    async function fetchHistory() {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+    if (!user?.uid) return;
 
+    const historyKey = `history_${user.uid}`;
+    const savedHistory = JSON.parse(localStorage.getItem(historyKey)) || [];
       try {
         setLoading(true);
         const q = query(
@@ -29,23 +31,17 @@ export default function History({ user }) {
           orderBy("createdAt", "desc")
         );
 
-        const querySnapshot = await getDocs(q);
-        const docs = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        setHistoryList(docs);
-      } catch (error) {
-        console.error("Lỗi khi tải lịch sử quét:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchHistory();
+    setHistory(savedHistory);
   }, [user]);
 
+  const clearHistory = () => {
+    if (!user?.uid) return;
+
+    const historyKey = `history_${user.uid}`;
+
+    localStorage.removeItem(historyKey);
+    setHistory([]);
+  };
   if (!user) {
     return (
       <div className="page-wrapper container animate-fade-in" style={{ textAlign: "center", maxWidth: "600px" }}>
@@ -99,6 +95,11 @@ export default function History({ user }) {
   });
 
   return (
+    <main className="page">
+      <div className="page-head">
+        <div>
+          <h1>Lịch Sử Quét Rác</h1>
+          <p>Hiển thị lại các lần quét rác của {user?.name || user?.email}.</p>
     <div className="page-wrapper container animate-fade-in" style={{ maxWidth: "860px" }}>
       {/* Header */}
       <div
@@ -251,8 +252,52 @@ export default function History({ user }) {
             </button>
           )}
         </div>
+
+        {history.length > 0 && (
+          <button className="primary-small" onClick={clearHistory}>
+            Xóa lịch sử
+          </button>
+        )}
       </div>
 
+      <div className="table-card">
+        <h3>Nhật Ký Quét</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Thời gian</th>
+              <th>Loại rác nhận diện</th>
+              <th>Nhóm rác</th>
+              <th>Độ tin cậy</th>
+              <th>Hướng dẫn</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {history.length === 0 ? (
+              <tr>
+                <td colSpan="5">Chưa có lịch sử quét.</td>
+              </tr>
+            ) : (
+              history.map((item, index) => (
+                <tr key={index}>
+                  <td>{item.time}</td>
+                  <td>
+                    <b>{item.class}</b>
+                  </td>
+                  <td>
+                    <span className="tag">{item.type}</span>
+                  </td>
+                  <td>{item.confidence}%</td>
+                  <td>{item.guide}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </main>
       {/* History List or Empty States */}
       {loading ? (
         <div className="glass-card" style={{ textAlign: "center", padding: "3.5rem" }}>
