@@ -6,6 +6,7 @@ import { Leaf, Heart, Shield, Cpu, ExternalLink } from "lucide-react";
 
 // Components
 import Navbar from "./components/Navbar";
+import ScrollToTop from "./components/ScrollToTop";
 
 // Pages
 import Home from "./pages/Home";
@@ -198,6 +199,9 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* Nút Cuộn Lên Đầu Trang & Tự Động Reset Scroll Khi Đổi Route */}
+      <ScrollToTop />
     </div>
   );
 }
