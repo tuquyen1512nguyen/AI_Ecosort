@@ -6,46 +6,76 @@ import {
   updateDoc,
   deleteDoc,
 } from "firebase/firestore";
+import {
+  BarChart3,
+  Download,
+  Users,
+  Recycle,
+  Trash2,
+  Biohazard,
+  Camera,
+  Search,
+  Filter,
+  Edit2,
+  Trash,
+  CheckCircle2,
+  AlertCircle,
+  ShieldCheck,
+  Activity,
+  Server,
+  Database,
+  Cpu,
+  RefreshCw,
+  X,
+  Sparkles
+} from "lucide-react";
 
 import { db } from "../firebase";
 
 export default function Statistics() {
   const [history, setHistory] = useState([]);
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [userRoleFilter, setUserRoleFilter] = useState("ALL");
 
   const [editingUser, setEditingUser] = useState(null);
-
   const [form, setForm] = useState({
     name: "",
     email: "",
     role: "user",
     status: "Hoạt động",
   });
+  const [toastMsg, setToastMsg] = useState(null);
+
+  const showToast = (msg) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  };
 
   const fetchData = async () => {
     try {
-      const historySnap = await getDocs(
-        collection(db, "history")
-      );
+      setLoading(true);
+      const historySnap = await getDocs(collection(db, "history"));
+      const usersSnap = await getDocs(collection(db, "users"));
 
-      const usersSnap = await getDocs(
-        collection(db, "users")
-      );
-
-      const historyData = historySnap.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
+      const historyData = historySnap.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
       }));
 
-      const usersData = usersSnap.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
+      const usersData = usersSnap.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
       }));
 
       setHistory(historyData);
       setUsers(usersData);
     } catch (error) {
-      console.error(error);
+      console.error("Fetch Data Error:", error);
+      showToast("Không thể tải dữ liệu Firestore.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -53,24 +83,11 @@ export default function Statistics() {
     fetchData();
   }, []);
 
-  // =========================
-  // THỐNG KÊ
-  // =========================
-
+  // Stats Calculations
   const totalScans = history.length;
-
-  const recyclable = history.filter(
-    (item) => item.type === "RECYCLABLE"
-  ).length;
-
-  const nonRecyclable = history.filter(
-    (item) => item.type === "NON_RECYCLABLE"
-  ).length;
-
-  const hazardous = history.filter(
-    (item) => item.type === "HAZARDOUS"
-  ).length;
-
+  const recyclable = history.filter((item) => item.type === "RECYCLABLE").length;
+  const nonRecyclable = history.filter((item) => item.type === "NON_RECYCLABLE").length;
+  const hazardous = history.filter((item) => item.type === "HAZARDOUS").length;
   const unknown = history.filter(
     (item) =>
       item.type !== "RECYCLABLE" &&
@@ -78,71 +95,48 @@ export default function Statistics() {
       item.type !== "HAZARDOUS"
   ).length;
 
-  // =========================
-  // USER SCAN COUNT
-  // =========================
+  const recyclePercent = totalScans > 0 ? Math.round((recyclable / totalScans) * 100) : 0;
+  const nonRecyclePercent = totalScans > 0 ? Math.round((nonRecyclable / totalScans) * 100) : 0;
+  const hazardousPercent = totalScans > 0 ? Math.round((hazardous / totalScans) * 100) : 0;
 
   const getUserScans = (user) => {
     return history.filter(
-      (item) =>
-        item.uid === user.id ||
-        item.email === user.email
+      (item) => item.uid === user.id || item.email === user.email
     ).length;
   };
 
-  // =========================
-  // EXPORT CSV
-  // =========================
-
+  // Export CSV
   const exportReport = () => {
-    const rows = [
-      [
-        "Email",
-        "Loai rac",
-        "Nhom",
-        "Do tin cay",
-        "Huong dan",
-      ],
+    try {
+      const rows = [
+        ["ID", "Email", "Vat pham", "Nhom rac", "Do tin cay (%)", "Huong dan"],
+        ...history.map((item) => [
+          item.id || "",
+          `"${item.email || "guest"}"`,
+          `"${item.class || "Unknown"}"`,
+          `"${item.type || "NON_RECYCLABLE"}"`,
+          item.confidence || 0,
+          `"${(item.guide || "").replace(/"/g, '""')}"`,
+        ]),
+      ];
 
-      ...history.map((item) => [
-        item.email || "guest",
-        item.class || "Unknown",
-        item.type || "Unknown",
-        item.confidence || 0,
-        item.guide || "",
-      ]),
-    ];
-
-    const csv = rows
-      .map((row) => row.join(","))
-      .join("\n");
-
-    const blob = new Blob(
-      ["\uFEFF" + csv],
-      {
-        type: "text/csv;charset=utf-8;",
-      }
-    );
-
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-
-    a.href = url;
-    a.download = "ecosort-report.csv";
-
-    a.click();
-
-    URL.revokeObjectURL(url);
+      const csv = rows.map((row) => row.join(",")).join("\n");
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ecosort-report-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("Đã xuất báo cáo CSV thành công!");
+    } catch (e) {
+      showToast("Lỗi khi tạo file CSV.");
+    }
   };
 
-  // =========================
-  // EDIT USER
-  // =========================
-
+  // Edit User
   const openEdit = (user) => {
     setEditingUser(user);
-
     setForm({
       name: user.name || "",
       email: user.email || "",
@@ -154,400 +148,475 @@ export default function Statistics() {
   const saveEdit = async () => {
     try {
       if (!editingUser) return;
-
-      await updateDoc(
-        doc(db, "users", editingUser.id),
-        {
-          name: form.name,
-          email: form.email,
-          role: form.role,
-          status: form.status,
-        }
-      );
+      await updateDoc(doc(db, "users", editingUser.id), {
+        name: form.name.trim(),
+        email: form.email.trim(),
+        role: form.role,
+        status: form.status,
+      });
 
       setEditingUser(null);
-
       fetchData();
-
-      alert("Cập nhật thành công!");
+      showToast("Cập nhật thông tin người dùng thành công!");
     } catch (error) {
       console.error(error);
-      alert("Lỗi cập nhật user.");
+      showToast("Lỗi cập nhật người dùng.");
     }
   };
 
-  // =========================
-  // DELETE USER
-  // =========================
-
+  // Delete User
   const deleteUser = async (userId) => {
-    const ok = confirm(
-      "Bạn có chắc muốn xóa user này?"
-    );
-
+    const ok = window.confirm("Bạn có chắc chắn muốn xóa tài khoản này khỏi hệ thống?");
     if (!ok) return;
 
     try {
       await deleteDoc(doc(db, "users", userId));
-
       fetchData();
-
-      alert("Đã xóa user.");
+      showToast("Đã xóa người dùng thành công.");
     } catch (error) {
       console.error(error);
-      alert("Lỗi xóa user.");
+      showToast("Lỗi khi xóa người dùng.");
     }
   };
 
+  // Filtered Users
+  const filteredUsers = users.filter((u) => {
+    const matchesSearch =
+      (u.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (u.email || "").toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = userRoleFilter === "ALL" || u.role === userRoleFilter;
+    return matchesSearch && matchesRole;
+  });
+
   return (
-    <main className="admin-page">
-      {/* HEADER */}
+    <main className="admin-page-container">
+      {/* TOAST FEEDBACK */}
+      {toastMsg && (
+        <div className="admin-toast">
+          <Sparkles size={16} />
+          <span>{toastMsg}</span>
+        </div>
+      )}
 
-      <div className="admin-header">
+      {/* ADMIN HEADER */}
+      <div className="admin-header-row">
         <div>
-          <h1>Thống Kê Hệ Thống EcoSort AI</h1>
-
-          <p>
-            Theo dõi dữ liệu thật từ Firebase
-            Firestore.
-          </p>
+          <div className="badge-pill">
+            <ShieldCheck size={14} />
+            <span>ADMIN COMMAND CENTER</span>
+          </div>
+          <h1>Bảng Điều Khiển & Thống Kê Toàn Hệ Thống</h1>
+          <p>Giám sát thời gian thực số liệu nhận diện, tài khoản và hoạt động phân loại rác.</p>
         </div>
 
-        <button
-          className="admin-btn"
-          onClick={exportReport}
-        >
-          Xuất báo cáo
-        </button>
+        <div className="admin-header-buttons">
+          <button className="secondary-btn" onClick={fetchData} disabled={loading}>
+            <RefreshCw size={16} className={loading ? "spin-slow" : ""} />
+            <span>Làm Mới</span>
+          </button>
+          <button className="primary-btn" onClick={exportReport}>
+            <Download size={16} />
+            <span>Xuất Báo Cáo CSV</span>
+          </button>
+        </div>
       </div>
 
-      {/* STATS */}
-
-      <section className="admin-stats">
-        <div className="admin-stat-card">
-          <span>📷</span>
-
-          <p>Tổng lượt quét</p>
-
+      {/* KPI METRIC CARDS */}
+      <section className="admin-kpi-grid">
+        <div className="admin-kpi-card emerald-theme">
+          <div className="kpi-top">
+            <span className="kpi-card-label">Tổng Lượt Quét</span>
+            <div className="kpi-icon-bubble">
+              <Camera size={20} />
+            </div>
+          </div>
           <h2>{totalScans}</h2>
+          <div className="kpi-bottom">
+            <span className="kpi-tag green">Đồng bộ Cloud Firestore</span>
+          </div>
         </div>
 
-        <div className="admin-stat-card">
-          <span>♻️</span>
-
-          <p>Rác tái chế</p>
-
+        <div className="admin-kpi-card green-theme">
+          <div className="kpi-top">
+            <span className="kpi-card-label">Rác Tái Chế</span>
+            <div className="kpi-icon-bubble">
+              <Recycle size={20} />
+            </div>
+          </div>
           <h2>{recyclable}</h2>
+          <div className="kpi-bottom">
+            <span className="kpi-tag green">{recyclePercent}% Tổng số</span>
+          </div>
         </div>
 
-        <div className="admin-stat-card">
-          <span>🗑️</span>
-
-          <p>Không tái chế</p>
-
+        <div className="admin-kpi-card gray-theme">
+          <div className="kpi-top">
+            <span className="kpi-card-label">Rác Sinh Hoạt</span>
+            <div className="kpi-icon-bubble">
+              <Trash2 size={20} />
+            </div>
+          </div>
           <h2>{nonRecyclable}</h2>
+          <div className="kpi-bottom">
+            <span className="kpi-tag gray">{nonRecyclePercent}% Tổng số</span>
+          </div>
         </div>
 
-        <div className="admin-stat-card">
-          <span>☣️</span>
-
-          <p>Rác nguy hại</p>
-
+        <div className="admin-kpi-card red-theme">
+          <div className="kpi-top">
+            <span className="kpi-card-label">Rác Nguy Hại</span>
+            <div className="kpi-icon-bubble">
+              <Biohazard size={20} />
+            </div>
+          </div>
           <h2>{hazardous}</h2>
+          <div className="kpi-bottom">
+            <span className="kpi-tag red">{hazardousPercent}% Cần cách ly</span>
+          </div>
         </div>
       </section>
 
-      {/* GRID */}
-
-      <section className="admin-grid">
-        {/* LEFT */}
-
-        <div className="admin-card">
-          <h2>Phân loại lượt quét</h2>
-
-          <div className="progress-row">
-            <div>
-              <b>Rác tái chế</b>
-
-              <p>
-                Chai nhựa, lon, giấy,
-                carton...
-              </p>
-            </div>
-
-            <span>{recyclable}</span>
+      {/* ANALYTICS SPLIT SECTION */}
+      <section className="admin-two-cols">
+        {/* LEFT: CATEGORY DISTRIBUTION PROGRESS */}
+        <div className="admin-panel-card">
+          <div className="panel-title-bar">
+            <h3>Phân Phối Danh Mục Rác</h3>
+            <span className="panel-sub">Tỷ lệ theo kết quả YOLOv8</span>
           </div>
 
-          <div className="progress-row">
-            <div>
-              <b>Rác không tái chế</b>
-
-              <p>
-                Túi nilon, ống hút,
-                ly nhựa bẩn...
-              </p>
+          <div className="dist-list">
+            <div className="dist-item">
+              <div className="dist-info">
+                <span className="dist-dot green"></span>
+                <div className="dist-text">
+                  <strong>Rác Tái Chế (Nhựa, Lon, Giấy)</strong>
+                  <p>Thu hồi làm sạch để tái chế</p>
+                </div>
+                <div className="dist-nums">
+                  <b>{recyclable} lượt</b>
+                  <span>({recyclePercent}%)</span>
+                </div>
+              </div>
+              <div className="dist-bar-track">
+                <div
+                  className="dist-bar-fill bg-green"
+                  style={{ width: `${recyclePercent}%` }}
+                ></div>
+              </div>
             </div>
 
-            <span>{nonRecyclable}</span>
-          </div>
-
-          <div className="progress-row">
-            <div>
-              <b>Rác nguy hại</b>
-
-              <p>
-                Pin, bóng đèn, bình
-                xịt hóa chất...
-              </p>
+            <div className="dist-item">
+              <div className="dist-info">
+                <span className="dist-dot gray"></span>
+                <div className="dist-text">
+                  <strong>Rác Sinh Hoạt / Tiêu Hao</strong>
+                  <p>Túi nilon bẩn, hộp xốp, màng bọc</p>
+                </div>
+                <div className="dist-nums">
+                  <b>{nonRecyclable} lượt</b>
+                  <span>({nonRecyclePercent}%)</span>
+                </div>
+              </div>
+              <div className="dist-bar-track">
+                <div
+                  className="dist-bar-fill bg-gray"
+                  style={{ width: `${nonRecyclePercent}%` }}
+                ></div>
+              </div>
             </div>
 
-            <span>{hazardous}</span>
-          </div>
-
-          <div className="progress-row">
-            <div>
-              <b>Không xác định</b>
-
-              <p>
-                Ảnh mờ hoặc AI chưa
-                nhận diện được.
-              </p>
+            <div className="dist-item">
+              <div className="dist-info">
+                <span className="dist-dot red"></span>
+                <div className="dist-text">
+                  <strong>Chất Thải Nguy Hại</strong>
+                  <p>Pin, bóng đèn huỳnh quang, hóa chất</p>
+                </div>
+                <div className="dist-nums">
+                  <b>{hazardous} lượt</b>
+                  <span>({hazardousPercent}%)</span>
+                </div>
+              </div>
+              <div className="dist-bar-track">
+                <div
+                  className="dist-bar-fill bg-red"
+                  style={{ width: `${hazardousPercent}%` }}
+                ></div>
+              </div>
             </div>
-
-            <span>{unknown}</span>
           </div>
         </div>
 
-        {/* RIGHT */}
-
-        <div className="admin-card">
-          <h2>Hoạt động gần đây</h2>
+        {/* RIGHT: RECENT SCAN ACTIVITY FEED */}
+        <div className="admin-panel-card">
+          <div className="panel-title-bar">
+            <h3>Hoạt Động Quét Gần Đây</h3>
+            <span className="panel-sub">Thời gian thực</span>
+          </div>
 
           {history.length === 0 ? (
-            <p className="muted">
-              Chưa có dữ liệu hoạt động.
-            </p>
+            <div className="panel-empty-text">Chưa có lượt quét nào được lưu trên hệ thống.</div>
           ) : (
-            history
-              .slice(0, 6)
-              .map((item) => (
-                <div
-                  className="activity-item"
-                  key={item.id}
-                >
-                  <div className="activity-icon">
-                    ♻️
+            <div className="activity-stream">
+              {history.slice(0, 5).map((item) => (
+                <div className="activity-stream-item" key={item.id}>
+                  <div
+                    className={`activity-bullet ${
+                      item.type === "RECYCLABLE"
+                        ? "bullet-green"
+                        : item.type === "HAZARDOUS"
+                        ? "bullet-red"
+                        : "bullet-gray"
+                    }`}
+                  >
+                    {item.type === "RECYCLABLE" ? (
+                      <Recycle size={14} />
+                    ) : item.type === "HAZARDOUS" ? (
+                      <Biohazard size={14} />
+                    ) : (
+                      <Trash2 size={14} />
+                    )}
                   </div>
-
-                  <div>
-                    <b>
-                      {item.class ||
-                        "Unknown"}
-                    </b>
-
-                    <p>
-                      {item.email ||
-                        "guest"}{" "}
-                      •{" "}
-                      {item.type ||
-                        "Unknown"}{" "}
-                      •{" "}
-                      {item.confidence ||
-                        0}
-                      %
-                    </p>
+                  <div className="activity-content">
+                    <div className="act-line-1">
+                      <strong>{item.class || "Vật phẩm rác"}</strong>
+                      <span className="act-conf-tag">{item.confidence || 0}%</span>
+                    </div>
+                    <div className="act-line-2">
+                      <span>{item.email || "Khách vãng lai"}</span>
+                      <span>•</span>
+                      <span>{item.type || "Chưa phân loại"}</span>
+                    </div>
                   </div>
                 </div>
-              ))
+              ))}
+            </div>
           )}
         </div>
       </section>
 
-      {/* USER MANAGEMENT */}
+      {/* USER MANAGEMENT SECTION */}
+      <section className="admin-panel-card mt-6">
+        <div className="user-table-head-row">
+          <div>
+            <h3>Quản Lý Người Dùng ({users.length})</h3>
+            <span className="panel-sub">Danh sách tài khoản trong hệ thống</span>
+          </div>
 
-      <section className="admin-card">
-        <div className="table-header">
-          <h2>Quản lý người dùng</h2>
+          <div className="user-filter-controls">
+            <div className="table-search-box">
+              <Search size={16} />
+              <input
+                type="text"
+                placeholder="Tìm tên hoặc email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            <select
+              className="table-role-select"
+              value={userRoleFilter}
+              onChange={(e) => setUserRoleFilter(e.target.value)}
+            >
+              <option value="ALL">Tất cả vai trò</option>
+              <option value="admin">Quản trị viên (admin)</option>
+              <option value="user">Người dùng (user)</option>
+            </select>
+          </div>
         </div>
 
-        {/* EDIT FORM */}
-
+        {/* EDIT USER MODAL / INLINE DRAWER */}
         {editingUser && (
-          <div className="user-form">
-            <input
-              placeholder="Tên"
-              value={form.name}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  name: e.target.value,
-                })
-              }
-            />
+          <div className="edit-user-modal-overlay">
+            <div className="edit-user-card">
+              <div className="edit-card-head">
+                <h4>Chỉnh Sửa Người Dùng</h4>
+                <button className="btn-close-modal" onClick={() => setEditingUser(null)}>
+                  <X size={18} />
+                </button>
+              </div>
 
-            <input
-              placeholder="Email"
-              value={form.email}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  email: e.target.value,
-                })
-              }
-            />
+              <div className="edit-form-grid">
+                <div className="form-group">
+                  <label>Họ và Tên</label>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  />
+                </div>
 
-            <select
-              value={form.role}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  role: e.target.value,
-                })
-              }
-            >
-              <option value="user">
-                user
-              </option>
+                <div className="form-group">
+                  <label>Email</label>
+                  <input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  />
+                </div>
 
-              <option value="admin">
-                admin
-              </option>
-            </select>
+                <div className="form-group">
+                  <label>Vai Trò</label>
+                  <select
+                    value={form.role}
+                    onChange={(e) => setForm({ ...form, role: e.target.value })}
+                  >
+                    <option value="user">Người Dùng (user)</option>
+                    <option value="admin">Quản Trị Viên (admin)</option>
+                  </select>
+                </div>
 
-            <select
-              value={form.status}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  status: e.target.value,
-                })
-              }
-            >
-              <option value="Hoạt động">
-                Hoạt động
-              </option>
+                <div className="form-group">
+                  <label>Trạng Thái</label>
+                  <select
+                    value={form.status}
+                    onChange={(e) => setForm({ ...form, status: e.target.value })}
+                  >
+                    <option value="Hoạt động">Hoạt Động</option>
+                    <option value="Khóa">Tạm Khóa</option>
+                  </select>
+                </div>
+              </div>
 
-              <option value="Khóa">
-                Khóa
-              </option>
-            </select>
-
-            <button
-              className="admin-btn small"
-              onClick={saveEdit}
-            >
-              Lưu
-            </button>
+              <div className="edit-form-actions">
+                <button className="secondary-btn" onClick={() => setEditingUser(null)}>
+                  Hủy Bỏ
+                </button>
+                <button className="primary-btn" onClick={saveEdit}>
+                  Lưu Thay Đổi
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* TABLE */}
-
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Tên</th>
-              <th>Email</th>
-              <th>Vai trò</th>
-              <th>Lượt quét</th>
-              <th>Trạng thái</th>
-              <th>Thao tác</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {users.length === 0 ? (
+        {/* USERS TABLE */}
+        <div className="table-responsive-container">
+          <table className="modern-data-table">
+            <thead>
               <tr>
-                <td colSpan="6">
-                  Chưa có dữ liệu user.
-                </td>
+                <th>Họ Tên</th>
+                <th>Email</th>
+                <th>Vai Trò</th>
+                <th>Lượt Quét</th>
+                <th>Trạng Thái</th>
+                <th>Thao Tác</th>
               </tr>
-            ) : (
-              users.map((user) => (
-                <tr key={user.id}>
-                  <td>
-                    <b>
-                      {user.name ||
-                        "Chưa có tên"}
-                    </b>
-                  </td>
-
-                  <td>{user.email}</td>
-
-                  <td>
-                    <span className="admin-tag">
-                      {user.role ||
-                        "user"}
-                    </span>
-                  </td>
-
-                  <td>
-                    {getUserScans(user)}
-                  </td>
-
-                  <td className="success">
-                    {user.status ||
-                      "Hoạt động"}
-                  </td>
-
-                  <td>
-                    <button
-                      className="action-btn"
-                      onClick={() =>
-                        openEdit(user)
-                      }
-                    >
-                      Sửa
-                    </button>
-
-                    <button
-                      className="delete-btn"
-                      onClick={() =>
-                        deleteUser(user.id)
-                      }
-                    >
-                      Xóa
-                    </button>
+            </thead>
+            <tbody>
+              {filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="text-center py-6">
+                    Không tìm thấy người dùng phù hợp.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filteredUsers.map((u) => (
+                  <tr key={u.id}>
+                    <td>
+                      <div className="user-name-cell">
+                        <div className={`user-table-avatar ${u.role === "admin" ? "admin" : ""}`}>
+                          {u.name ? u.name[0].toUpperCase() : "U"}
+                        </div>
+                        <strong>{u.name || "Chưa cập nhật"}</strong>
+                      </div>
+                    </td>
+                    <td>{u.email}</td>
+                    <td>
+                      <span className={`role-badge ${u.role === "admin" ? "admin" : "member"}`}>
+                        {u.role === "admin" ? "👑 Admin" : "👤 Thành viên"}
+                      </span>
+                    </td>
+                    <td>
+                      <b className="scan-count-badge">{getUserScans(u)}</b>
+                    </td>
+                    <td>
+                      <span
+                        className={`status-pill ${
+                          u.status === "Khóa" ? "status-locked" : "status-active"
+                        }`}
+                      >
+                        {u.status === "Khóa" ? "Tạm khóa" : "● Hoạt động"}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="table-actions-cell">
+                        <button
+                          className="btn-action-edit"
+                          onClick={() => openEdit(u)}
+                          title="Sửa thông tin"
+                        >
+                          <Edit2 size={15} />
+                        </button>
+                        <button
+                          className="btn-action-del"
+                          onClick={() => deleteUser(u.id)}
+                          title="Xóa người dùng"
+                        >
+                          <Trash size={15} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </section>
 
-      {/* SYSTEM */}
+      {/* SYSTEM INFRASTRUCTURE STATUS */}
+      <section className="admin-panel-card mt-6">
+        <div className="panel-title-bar">
+          <h3>Hạ Tầng Kỹ Thuật & Công Nghệ</h3>
+          <span className="panel-sub">Kiến trúc hệ thống vận hành EcoSort AI</span>
+        </div>
 
-      <section className="admin-card system-section">
-        <h2>Thông tin hệ thống</h2>
-
-        <div className="system-grid">
-          <div>
-            <b>Mô hình AI</b>
-
-            <p>
-              YOLOv8 Object Detection
-            </p>
+        <div className="system-specs-grid">
+          <div className="spec-card">
+            <div className="spec-icon-box bg-emerald">
+              <Cpu size={22} />
+            </div>
+            <div>
+              <span className="spec-label">Mô hình Nhận Diện</span>
+              <strong className="spec-name">YOLOv8 Computer Vision</strong>
+              <p>Phân loại 22 nhóm nhãn với độ trễ &lt; 0.5s</p>
+            </div>
           </div>
 
-          <div>
-            <b>Backend</b>
-
-            <p>FastAPI Python</p>
+          <div className="spec-card">
+            <div className="spec-icon-box bg-cyan">
+              <Server size={22} />
+            </div>
+            <div>
+              <span className="spec-label">Backend API Service</span>
+              <strong className="spec-name">FastAPI Python 3.10+</strong>
+              <p>RESTful API xử lý hình ảnh và đa luồng</p>
+            </div>
           </div>
 
-          <div>
-            <b>Frontend</b>
-
-            <p>ReactJS + CSS</p>
+          <div className="spec-card">
+            <div className="spec-icon-box bg-purple">
+              <Activity size={22} />
+            </div>
+            <div>
+              <span className="spec-label">Frontend Framework</span>
+              <strong className="spec-name">React 19 + Vite 6</strong>
+              <p>Single Page Application hiệu năng cao</p>
+            </div>
           </div>
 
-          <div>
-            <b>Cơ sở dữ liệu</b>
-
-            <p>
-              Firebase Firestore
-            </p>
+          <div className="spec-card">
+            <div className="spec-icon-box bg-amber">
+              <Database size={22} />
+            </div>
+            <div>
+              <span className="spec-label">Cơ Sở Dữ Liệu</span>
+              <strong className="spec-name">Google Cloud Firestore</strong>
+              <p>Lưu trữ thời gian thực nhật ký & tài khoản</p>
+            </div>
           </div>
         </div>
       </section>
