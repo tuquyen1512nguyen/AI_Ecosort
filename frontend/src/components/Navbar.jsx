@@ -1,6 +1,3 @@
-import { NavLink, useNavigate } from "react-router-dom";
-
-export default function Navbar({ user, setUser }) {
 import React, { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
@@ -16,24 +13,21 @@ import {
   UserPlus, 
   Menu, 
   X,
-  User,
   Trophy
 } from "lucide-react";
 
 /**
  * Modern Glassmorphism Navbar with Mobile Drawer & Active Indicators
  */
-export default function Navbar({ user }) {
+export default function Navbar({ user, setUser }) {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const logout = () => {
-    localStorage.removeItem("currentUser");
-    setUser(null);
-    navigate("/");
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      localStorage.removeItem("currentUser");
+      if (setUser) setUser(null);
       setMobileMenuOpen(false);
       navigate("/login");
     } catch (error) {
@@ -50,42 +44,6 @@ export default function Navbar({ user }) {
   ];
 
   return (
-    <nav className="navbar">
-      <div className="nav-container">
-        <div className="brand" onClick={() => navigate("/")}>
-          <div className="brand-icon">♻</div>
-          <span>EcoSort AI</span>
-        </div>
-
-        <div className="nav-links">
-          <NavLink to="/">Trang Chủ</NavLink>
-
-          <NavLink to="/scan">Quét AI</NavLink>
-
-          {user && <NavLink to="/history">Lịch Sử</NavLink>}
-
-          <NavLink to="/guide">Hướng Dẫn</NavLink>
-
-          {user?.role === "admin" && (
-            <NavLink to="/statistics">Thống Kê</NavLink>
-          )}
-        </div>
-
-        {!user ? (
-          <button className="start-btn" onClick={() => navigate("/login")}>
-            Bắt Đầu Ngay
-          </button>
-        ) : (
-          <div className="user-box">
-            <span>
-            {user.role === "admin" ? "👑 " : "👤 "}
-            {user.name}
-            </span>
-            <button className="logout-btn" onClick={logout}>
-              Đăng xuất
-            </button>
-          </div>
-        )}
     <nav
       style={{
         position: "sticky",
@@ -105,6 +63,9 @@ export default function Navbar({ user }) {
           justifyContent: "space-between",
           alignItems: "center",
           height: "72px",
+          maxWidth: "1280px",
+          margin: "0 auto",
+          padding: "0 1.5rem",
         }}
       >
         {/* Brand Logo */}
@@ -238,7 +199,7 @@ export default function Navbar({ user }) {
                     color: "#ffffff",
                   }}
                 >
-                  {(user.displayName || user.email || "U")[0].toUpperCase()}
+                  {(user.displayName || user.name || user.email || "U")[0].toUpperCase()}
                 </div>
                 <span
                   style={{
@@ -250,8 +211,22 @@ export default function Navbar({ user }) {
                     whiteSpace: "nowrap",
                   }}
                 >
-                  {user.displayName || user.email?.split("@")[0]}
+                  {user.displayName || user.name || user.email?.split("@")[0]}
                 </span>
+                {user.role === "admin" && (
+                  <span
+                    style={{
+                      fontSize: "0.68rem",
+                      background: "rgba(245, 158, 11, 0.2)",
+                      color: "#fbbf24",
+                      padding: "0.1rem 0.35rem",
+                      borderRadius: "4px",
+                      fontWeight: 700,
+                    }}
+                  >
+                    ADMIN
+                  </span>
+                )}
               </div>
 
               <button
@@ -263,6 +238,10 @@ export default function Navbar({ user }) {
                   border: "1px solid rgba(239, 68, 68, 0.25)",
                   borderRadius: "8px",
                   fontSize: "0.82rem",
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.35rem",
                 }}
                 title="Đăng xuất"
               >
@@ -281,6 +260,10 @@ export default function Navbar({ user }) {
                     border: "1px solid var(--border-color)",
                     borderRadius: "8px",
                     fontSize: "0.875rem",
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.35rem",
                   }}
                 >
                   <LogIn size={16} />
@@ -294,6 +277,10 @@ export default function Navbar({ user }) {
                     padding: "0.5rem 1.15rem",
                     borderRadius: "8px",
                     fontSize: "0.875rem",
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.35rem",
                   }}
                 >
                   <UserPlus size={16} />
@@ -314,6 +301,7 @@ export default function Navbar({ user }) {
             border: "1px solid var(--border-color)",
             padding: "0.5rem",
             borderRadius: "8px",
+            cursor: "pointer",
           }}
           aria-label="Toggle Navigation Menu"
         >
@@ -367,6 +355,7 @@ export default function Navbar({ user }) {
               <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                 <div style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
                   Đang đăng nhập: <strong>{user.email}</strong>
+                  {user.role === "admin" && " (Admin)"}
                 </div>
                 <button
                   onClick={handleLogout}
@@ -377,6 +366,11 @@ export default function Navbar({ user }) {
                     color: "#f87171",
                     border: "1px solid rgba(239, 68, 68, 0.3)",
                     borderRadius: "8px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "0.5rem",
                   }}
                 >
                   <LogOut size={18} />
@@ -397,6 +391,12 @@ export default function Navbar({ user }) {
                       background: "rgba(30, 41, 59, 0.8)",
                       color: "#fff",
                       border: "1px solid var(--border-color)",
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "0.5rem",
                     }}
                   >
                     <LogIn size={18} />
@@ -410,7 +410,16 @@ export default function Navbar({ user }) {
                 >
                   <button
                     className="btn-primary"
-                    style={{ width: "100%", padding: "0.75rem" }}
+                    style={{
+                      width: "100%",
+                      padding: "0.75rem",
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "0.5rem",
+                    }}
                   >
                     <UserPlus size={18} />
                     Đăng Ký

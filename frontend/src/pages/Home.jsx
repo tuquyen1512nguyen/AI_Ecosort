@@ -1,3 +1,4 @@
+import React from "react";
 import { Link } from "react-router-dom";
 import { 
   Scan, 
@@ -9,35 +10,23 @@ import {
   Flame, 
   AlertTriangle, 
   ArrowRight, 
-  CheckCircle2, 
   TreePine,
-  Layers,
-  Clock,
   Trophy
 } from "lucide-react";
 
-export default function Home() {
-  return (
-    <>
-      <section className="hero">
-        <div className="hero-text">
-          <div className="badge">🤖 TRÍ TUỆ NHÂN TẠO THẾ HỆ MỚI 2026</div>
-
-          <h1>
-            Phân Loại Rác <br />
-            <span>Thông Minh</span> Với <br />
-            Công Nghệ AI
-          </h1>
-
-          <p>
-            EcoSort AI sử dụng thị giác máy tính để nhận diện và phân loại rác
-            thải chính xác trong vài giây.
 /**
  * Trang Chủ EcoSort AI - Modern Hero & Interactive Features
  */
 export default function Home() {
   return (
-    <div className="page-wrapper container animate-fade-in">
+    <div
+      className="page-wrapper container animate-fade-in"
+      style={{
+        maxWidth: "1280px",
+        margin: "0 auto",
+        padding: "0 1.5rem 4rem 1.5rem",
+      }}
+    >
       {/* Hero Section */}
       <section
         style={{
@@ -128,6 +117,10 @@ export default function Home() {
                   padding: "0.95rem 2.25rem",
                   fontSize: "1.05rem",
                   fontWeight: 700,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
                 }}
               >
                 <Scan size={20} />
@@ -142,6 +135,10 @@ export default function Home() {
                   padding: "0.95rem 2rem",
                   fontSize: "1.05rem",
                   fontWeight: 600,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
                 }}
               >
                 <BookOpen size={20} />
@@ -208,17 +205,8 @@ export default function Home() {
           <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>
             Chỉ với chiếc điện thoại hoặc máy tính, bạn đã có trợ thủ phân loại rác thông minh
           </p>
-
-          <div className="hero-actions">
-            <Link to="/scan" className="primary-link">📷 Trải Nghiệm Quét AI</Link>
-            <a href="#features" className="secondary-link">Tìm Hiểu Thêm</a>
-          </div>
         </div>
 
-        <div className="hero-image">
-          <div className="blob blue"></div>
-          <div className="blob green"></div>
-          <div className="image-placeholder">🌍♻🤖</div>
         <div
           style={{
             display: "grid",
@@ -343,42 +331,7 @@ export default function Home() {
             Phân loại đúng ngay từ nguồn giúp tăng 80% tỷ lệ thu hồi tái chế của đô thị
           </p>
         </div>
-      </section>
 
-      <section className="stats-section">
-        <div className="stat"><h2>1.2M+</h2><p>Rác đã phân loại</p></div>
-        <div className="stat"><h2>450K</h2><p>Tấn CO2 giảm thiểu</p></div>
-        <div className="stat"><h2>85K</h2><p>Người dùng tích cực</p></div>
-        <div className="stat"><h2>120+</h2><p>Đối tác môi trường</p></div>
-      </section>
-
-      <section className="features-section" id="features">
-        <div className="section-title">
-          <h2>Giải Pháp Toàn Diện Cho Môi Trường</h2>
-          <p>Kết hợp AI và cộng đồng để tạo ra chu kỳ tái chế hiệu quả.</p>
-        </div>
-
-        <div className="feature-grid">
-          <div className="feature-card">
-            <div className="feature-icon green">🧠</div>
-            <h3>Nhận Diện Thông Minh</h3>
-            <p>AI phân tích loại rác và đưa ra hướng dẫn xử lý nhanh chóng.</p>
-            <Link to="/scan">Thử ngay →</Link>
-          </div>
-
-          <div className="feature-card">
-            <div className="feature-icon blue">📊</div>
-            <h3>Theo Dõi Lịch Sử</h3>
-            <p>Ghi lại hoạt động phân loại và xem tác động môi trường.</p>
-            <Link to="/history">Xem báo cáo →</Link>
-          </div>
-
-          <div className="feature-card">
-            <div className="feature-icon yellow">📘</div>
-            <h3>Cẩm Nang Tái Chế</h3>
-            <p>Thư viện kiến thức về rác tái chế, rác nguy hại và sống xanh.</p>
-            <Link to="/guide">Khám phá →</Link>
-          </div>
         <div
           style={{
             display: "grid",
@@ -525,6 +478,10 @@ export default function Home() {
                 fontWeight: 700,
                 background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
                 boxShadow: "0 4px 18px rgba(245, 158, 11, 0.35)",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.5rem",
               }}
             >
               <Trophy size={18} />
@@ -570,6 +527,10 @@ export default function Home() {
               borderRadius: "12px",
               fontSize: "1rem",
               fontWeight: 700,
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.5rem",
             }}
           >
             Quét Thử Ngay Bây Giờ
@@ -577,6 +538,6 @@ export default function Home() {
           </button>
         </Link>
       </section>
-    </>
+    </div>
   );
 }

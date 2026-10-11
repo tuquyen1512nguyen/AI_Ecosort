@@ -1,17 +1,14 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
-
-export default function Login({ setUser }) {
-import { auth } from "../firebase";
-import { LogIn, Mail, Lock, Eye, EyeOff, AlertCircle, Leaf, Sparkles } from "lucide-react";
+import { LogIn, Mail, Lock, Eye, EyeOff, AlertCircle, Leaf } from "lucide-react";
 
 /**
  * Trang Đăng Nhập Hệ Thống EcoSort AI
  */
-export default function Login() {
+export default function Login({ setUser }) {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -20,10 +17,17 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const login = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!email || !password) {
+      setError("Vui lòng điền đầy đủ email và mật khẩu.");
+      return;
+    }
 
     try {
+      setLoading(true);
+      setError("");
+
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email.trim(),
@@ -33,73 +37,65 @@ export default function Login() {
       const uid = userCredential.user.uid;
       const userEmail = userCredential.user.email;
 
-      const userDoc = await getDoc(doc(db, "users", uid));
+      let userData = {
+        name: userCredential.user.displayName || userEmail?.split("@")[0] || "Người dùng",
+        role: "user",
+      };
 
-      const userData = userDoc.exists()
-        ? userDoc.data()
-        : {
-            name: "Người dùng",
-            role: "user",
+      try {
+        const userDoc = await getDoc(doc(db, "users", uid));
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          userData = {
+            ...userData,
+            ...data,
+            name: data.displayName || data.name || userData.name,
+            role: data.role || "user",
           };
+        }
+      } catch (docErr) {
+        console.warn("Không thể tải document người dùng từ Firestore:", docErr);
+      }
 
       const loginUser = {
         uid,
         email: userEmail,
         role: userData.role || "user",
-        name: userData.name || userEmail,
+        name: userData.name,
+        displayName: userData.name,
       };
 
       localStorage.setItem("currentUser", JSON.stringify(loginUser));
-      setUser(loginUser);
+      if (setUser) setUser(loginUser);
 
-      navigate("/");
-    } catch (error) {
-      console.error("LOGIN ERROR:", error.code, error.message);
-      alert("Đăng nhập thất bại: " + error.code);
-      setLoading(true);
-      setError("");
-      await signInWithEmailAndPassword(auth, email, password);
       navigate("/scan");
     } catch (err) {
-      console.error(err);
-      setError("Email hoặc mật khẩu không chính xác. Vui lòng thử lại.");
+      console.error("LOGIN ERROR:", err);
+      if (
+        err.code === "auth/invalid-credential" ||
+        err.code === "auth/user-not-found" ||
+        err.code === "auth/wrong-password"
+      ) {
+        setError("Email hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại.");
+      } else if (err.code === "auth/too-many-requests") {
+        setError("Tài khoản tạm thời bị khóa do thử sai quá nhiều lần. Hãy thử lại sau ít phút.");
+      } else {
+        setError("Đăng nhập thất bại: " + (err.message || err.code));
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="auth-page">
-      <form className="auth-card" onSubmit={login}>
-        <div className="auth-logo">♻</div>
-
-        <h1>Đăng nhập EcoSort AI</h1>
-        <p>Đăng nhập để quét rác, xem lịch sử và sử dụng hệ thống.</p>
-
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          required
-          onChange={(e) => setEmail(e.target.value)}
-        />
-
-        <input
-          type="password"
-          placeholder="Mật khẩu"
-          value={password}
-          required
-          onChange={(e) => setPassword(e.target.value)}
-        />
-
-        <button type="submit">Đăng nhập</button>
-
-        <span className="auth-link">
-          Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>
-        </span>
-      </form>
-    </main>
-    <div className="page-wrapper container animate-fade-in" style={{ maxWidth: "460px" }}>
+    <div
+      className="page-wrapper container animate-fade-in"
+      style={{
+        maxWidth: "460px",
+        margin: "3rem auto",
+        padding: "0 1rem",
+      }}
+    >
       <div
         className="glass-card"
         style={{
@@ -236,8 +232,10 @@ export default function Login() {
                   top: "50%",
                   transform: "translateY(-50%)",
                   background: "transparent",
+                  border: "none",
                   color: "var(--text-muted)",
                   padding: "0.2rem",
+                  cursor: "pointer",
                 }}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -254,7 +252,12 @@ export default function Login() {
               padding: "0.9rem",
               fontSize: "1rem",
               borderRadius: "10px",
+              cursor: loading ? "not-allowed" : "pointer",
               opacity: loading ? 0.7 : 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.5rem",
             }}
           >
             <LogIn size={18} />

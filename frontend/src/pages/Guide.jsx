@@ -1,6 +1,8 @@
-import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import React, { useState } from "react";
+import GuideCard from "../components/GuideCard";
+import { Search, X, BookOpen, Sparkles, Filter, ChevronDown, HelpCircle, CheckCircle2 } from "lucide-react";
 
+// Ngân hàng câu hỏi thường gặp (FAQ)
 const FAQ_LIST = [
   {
     id: 1,
@@ -18,7 +20,7 @@ const FAQ_LIST = [
     id: 3,
     question: "Cần làm gì nếu AI nhận diện sai hoặc không nhận diện được?",
     answer:
-      "Nếu kết quả chưa chính xác hoặc hiển thị thông báo 'Không nhận diện được', bạn nên: (1) Đảm bảo môi trường chụp đủ ánh sáng, tránh bóng tối hoặc ngược sáng; (2) Đặt một vật thể rác rõ ràng ở trung tâm khung hình, tránh để quá nhiều đồ vật lẫn lộn; (3) Chụp trực diện rõ nét và lau sạch ống kính camera.",
+      "Nếu kết quả chưa chính xác hoặc hiển thị thông báo 'Không nhận diện được', bạn nên: (1) Đảm bảo môi trường chụp đủ ánh sáng, tránh bóng tối hoặc ngược sáng; (2) Đặt một vật thể rác rõ ràng ở trung tâm khung hình, tránh để quá nhiều đồ vật lẫn lộn; (3) Chụp trực diện rõ nét và lau sạch ống kính camera; (4) Bạn có thể bấm nút 'Báo Cáo Nhận Diện Sai' để gửi phản hồi cải thiện mô hình và nhận ngay +5 điểm Eco-points.",
   },
   {
     id: 4,
@@ -36,31 +38,9 @@ const FAQ_LIST = [
     id: 6,
     question: "Quy chuẩn 3 mã màu của EcoSort AI quy định như thế nào?",
     answer:
-      "Hệ thống áp dụng 3 nhóm màu trực quan theo chuẩn phân loại rác tại nguồn: 🟢 Màu Xanh lục (#22c55e): Rác Tái Chế (chai nhựa sạch, lon kim loại, bìa carton, giấy sạch); ⚪ Màu Xám (#64748b): Rác Không Tái Chế / Rác Sinh Hoạt (túi nilon bẩn, hộp xốp dính dầu mỡ, ống hút nhựa, dao thìa nhựa dùng một lần); 🔴 Màu Đỏ (#ef4444): Rác Nguy Hại (pin, bóng đèn, hóa chất).",
+      "Hệ thống áp dụng 3 nhóm màu trực quan theo chuẩn phân loại rác tại nguồn: 🟢 Màu Xanh lục (#10b981): Rác Tái Chế (chai nhựa sạch, lon kim loại, bìa carton, giấy sạch); ⚪ Màu Xám (#94a3b8): Rác Không Tái Chế / Rác Sinh Hoạt (túi nilon bẩn, hộp xốp dính dầu mỡ, ống hút nhựa, dao thìa nhựa dùng một lần); 🔴 Màu Đỏ (#ef4444): Rác Nguy Hại (pin, bóng đèn, hóa chất).",
   },
 ];
-
-export default function Guide() {
-  // Quản lý trạng thái mở/đóng của từng câu hỏi (mặc định mở câu 1)
-  const [openFaqs, setOpenFaqs] = useState({ 1: true });
-
-  const toggleFaq = (id) => {
-    setOpenFaqs((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
-
-  return (
-    <main className="page">
-      <header className="guide-header">
-        <h1>Hướng Dẫn Sử Dụng EcoSort AI</h1>
-        <p>
-          Trang này giúp người dùng biết cách quét rác, đọc kết quả AI và phân
-          loại rác đúng cách.
-import React, { useState } from "react";
-import GuideCard from "../components/GuideCard";
-import { Search, X, BookOpen, Sparkles, Filter } from "lucide-react";
 
 // Danh mục bách khoa 22 loại rác chuẩn mực của hệ sinh thái EcoSort AI
 const WASTE_CATALOG = [
@@ -123,29 +103,29 @@ const WASTE_CATALOG = [
     name: "Túi nilon sinh hoạt", 
     type: "NON_RECYCLABLE", 
     badge: "Rác sinh hoạt", 
-    decomposition: "~500 năm",
-    guide: "Buộc gọn gàng, bỏ vào thùng rác vô cơ / rác sinh hoạt thông thường.",
-    tip: "Nên tái sử dụng nhiều lần để đựng đồ hoặc lót thùng rác gia đình."
+    decomposition: "~10 - 100 năm",
+    guide: "Nếu túi quá dơ hoặc rách, buộc gọn lại và bỏ vào thùng rác sinh hoạt.",
+    tip: "Hạn chế nhận túi nilon mới khi mua sắm bằng cách mang theo túi vải canvas."
   },
   { 
     id: 6, 
     class: "scrap_paper", 
-    name: "Giấy dơ / Khăn ăn dính dầu", 
+    name: "Giấy dơ / Khăn ăn dính mỡ", 
     type: "NON_RECYCLABLE", 
     badge: "Rác sinh hoạt", 
     decomposition: "~2 - 4 tuần",
-    guide: "Giấy đã dính dầu mỡ thực phẩm không thể thu hồi bột giấy, bỏ vào rác sinh hoạt.",
-    tip: "Có thể ủ làm phân compost vi sinh nếu không dính hóa chất tẩy."
+    guide: "Giấy đã thấm dầu mỡ không thể tái chế bột giấy; bỏ vào rác sinh hoạt.",
+    tip: "Dầu mỡ bám dính sẽ làm vón cục và hỏng máy nghiền bột giấy tái chế."
   },
   { 
     id: 7, 
     class: "stick", 
-    name: "Que gỗ / Que kem", 
+    name: "Que kem / Que xiên gỗ", 
     type: "NON_RECYCLABLE", 
     badge: "Rác sinh hoạt", 
     decomposition: "~1 - 3 năm",
-    guide: "Bỏ vào túi rác sinh hoạt gia đình.",
-    tip: "Vật liệu tự nhiên có thể phân hủy hữu cơ trong đất ẩm."
+    guide: "Bẻ đôi que nhọn để tránh chọc thủng bao rác, bỏ vào rác sinh hoạt.",
+    tip: "Que gỗ vụn sinh hoạt có thể tự phân hủy sinh học trong đất vườn."
   },
   { 
     id: 8, 
@@ -154,28 +134,28 @@ const WASTE_CATALOG = [
     type: "NON_RECYCLABLE", 
     badge: "Rác sinh hoạt", 
     decomposition: "~450 năm",
-    guide: "Đổ bỏ đá và nước thừa, bỏ vào thùng rác sinh hoạt.",
-    tip: "Ưu tiên mang theo ly hoặc bình giữ nhiệt cá nhân khi đi mua cà phê."
+    guide: "Đổ hết đá lạnh và nước thừa, xếp lồng vào nhau và bỏ vào rác sinh hoạt.",
+    tip: "Nhựa mỏng dùng 1 lần (PET mỏng hoặc PP pha) rất khó tái chế thành phẩm."
   },
   { 
     id: 9, 
     class: "snack_bag", 
-    name: "Vỏ bánh kẹo / Bao bì bim bim", 
+    name: "Vỏ bao bì bánh kẹo / bim bim", 
     type: "NON_RECYCLABLE", 
     badge: "Rác sinh hoạt", 
-    decomposition: "~100 năm",
-    guide: "Bao bì màng phức hợp nhôm nhựa khó tách lớp, bỏ vào rác thông thường.",
-    tip: "Gấp gọn hoặc thắt nút để bao bì không bay vương vãi ra môi trường."
+    decomposition: "~80 năm",
+    guide: "Bao bì màng ghép nhôm-nhựa không thể bóc tách, bỏ vào thùng rác sinh hoạt.",
+    tip: "Cấu trúc đa lớp (nhựa + tráng bạc kim loại) khiến máy tái chế không tách được."
   },
   { 
     id: 10, 
     class: "plastic_box", 
-    name: "Hộp xốp đựng cơm", 
+    name: "Hộp xốp đựng thức ăn", 
     type: "NON_RECYCLABLE", 
     badge: "Rác sinh hoạt", 
-    decomposition: "~500 - 1000 năm",
-    guide: "Hộp xốp dính dầu mỡ thức ăn, vét sạch cơm thừa và vứt rác sinh hoạt.",
-    tip: "Xốp Polystyrene (PS) rất khó phân hủy và giải phóng vi nhựa độc hại."
+    decomposition: "~500 năm",
+    guide: "Vét sạch thức ăn thừa, đậy nắp và bỏ vào thùng rác không tái chế.",
+    tip: "Hộp xốp PS chứa 95% bọt khí, rất cồng kềnh và dễ vỡ vụn gây vi nhựa."
   },
   { 
     id: 11, 
@@ -184,18 +164,18 @@ const WASTE_CATALOG = [
     type: "NON_RECYCLABLE", 
     badge: "Rác sinh hoạt", 
     decomposition: "~200 năm",
-    guide: "Kích thước quá nhỏ dễ lọt qua lưới phân loại, bỏ thùng rác sinh hoạt.",
-    tip: "Nên chuyển sang dùng ống hút cỏ bàng, ống hút inox hoặc thủy tinh."
+    guide: "Bỏ vào túi rác sinh hoạt; kích thước nhỏ dễ lọt lưới sàng lọc của máy tái chế.",
+    tip: "Hãy ưu tiên dùng ống hút inox, thủy tinh hoặc ống hút cỏ bàng."
   },
   { 
     id: 12, 
     class: "plastic_cup_lid", 
-    name: "Nắp cốc trà sữa mang đi", 
+    name: "Nắp cốc trà sữa / cà phê", 
     type: "NON_RECYCLABLE", 
     badge: "Rác sinh hoạt", 
-    decomposition: "~450 năm",
-    guide: "Bỏ vào thùng rác sinh hoạt.",
-    tip: "Thường làm từ nhựa PS giòn khó thu gom và tái chế."
+    decomposition: "~400 năm",
+    guide: "Tháo bỏ ống hút, rửa sạch bọt sữa và bỏ vào thùng rác sinh hoạt.",
+    tip: "Nắp nhựa ép mỏng thường giòn và khó ép đùn tái sinh."
   },
   { 
     id: 13, 
@@ -292,11 +272,19 @@ const WASTE_CATALOG = [
 ];
 
 /**
- * Trang Cẩm Nang Phân Loại Rác 22 Nhãn Chuẩn Mực
+ * Trang Cẩm Nang Phân Loại Rác 22 Nhãn Chuẩn Mực & FAQ
  */
 export default function Guide() {
   const [activeTab, setActiveTab] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
+  const [openFaqs, setOpenFaqs] = useState({ 1: true });
+
+  const toggleFaq = (id) => {
+    setOpenFaqs((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
 
   const filteredItems = WASTE_CATALOG.filter((item) => {
     const matchesTab = activeTab === "ALL" ? true : item.type === activeTab;
@@ -309,9 +297,16 @@ export default function Guide() {
   });
 
   return (
-    <div className="page-wrapper container animate-fade-in">
+    <div
+      className="page-wrapper container animate-fade-in"
+      style={{
+        maxWidth: "1280px",
+        margin: "0 auto",
+        padding: "2rem 1.5rem 4rem 1.5rem",
+      }}
+    >
       {/* Header */}
-      <div style={{ textAlign: "center", marginBottom: "2.75rem" }}>
+      <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
         <div
           style={{
             display: "inline-flex",
@@ -337,113 +332,7 @@ export default function Guide() {
         <p style={{ color: "var(--text-muted)", maxWidth: "640px", margin: "0 auto", fontSize: "0.98rem" }}>
           Quy chuẩn phân loại 22 loại rác đô thị theo Luật Bảo vệ Môi trường, kèm thời gian phân hủy và mẹo dọn dẹp thực tế.
         </p>
-      </header>
 
-      <section className="steps-box">
-        <h2>Cách sử dụng hệ thống</h2>
-
-        <div className="steps">
-          <div>
-            <b>1</b>
-            <h3>Chọn ảnh hoặc mở webcam</h3>
-            <p>Vào trang Quét AI, tải ảnh rác lên hoặc chụp trực tiếp bằng webcam.</p>
-          </div>
-
-          <div>
-            <b>2</b>
-            <h3>Nhấn phân tích</h3>
-            <p>Hệ thống gửi ảnh đến mô hình AI để nhận diện loại rác.</p>
-          </div>
-
-          <div>
-            <b>3</b>
-            <h3>Xem kết quả</h3>
-            <p>Người dùng xem tên rác, nhóm rác, độ tin cậy và hướng dẫn xử lý.</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="category-grid">
-        <div className="category-card blue-border">
-          <div>♻️</div>
-          <h3>Rác tái chế</h3>
-          <p>Chai nhựa, lon kim loại, thùng carton, giấy sạch, nắp chai nhựa.</p>
-          <span>✅ Rửa sạch, làm khô rồi bỏ vào thùng tái chế.</span>
-        </div>
-
-        <div className="category-card gray-border">
-          <div>🗑️</div>
-          <h3>Rác không tái chế</h3>
-          <p>Túi nilon bẩn, ống hút, ly nhựa bẩn, hộp xốp, giấy dính dầu mỡ.</p>
-          <span>⚠️ Bỏ vào thùng rác sinh hoạt.</span>
-        </div>
-
-        <div className="category-card red-border">
-          <div>☣️</div>
-          <h3>Rác nguy hại</h3>
-          <p>Pin, bóng đèn, bình xịt hóa chất, chai hóa chất, thùng sơn.</p>
-          <span>🚫 Không bỏ chung, cần đưa đến điểm thu gom riêng.</span>
-        </div>
-      </section>
-
-      <section className="steps-box">
-        <h2>Mẹo để AI nhận diện chính xác hơn</h2>
-
-        <div className="steps">
-          <div>
-            <b>💡</b>
-            <h3>Đủ ánh sáng</h3>
-            <p>Chụp ảnh ở nơi sáng, tránh bóng tối hoặc ảnh bị mờ.</p>
-          </div>
-
-          <div>
-            <b>🎯</b>
-            <h3>Một vật thể chính</h3>
-            <p>Nên chụp một loại rác rõ ràng, không để quá nhiều vật lẫn nhau.</p>
-          </div>
-
-          <div>
-            <b>📷</b>
-            <h3>Góc chụp rõ</h3>
-            <p>Đặt vật ở giữa khung hình để mô hình dễ nhận diện hơn.</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="faq">
-        <h2>Câu hỏi thường gặp</h2>
-
-        <div className="faq-container">
-          {FAQ_LIST.map((item) => {
-            const isOpen = !!openFaqs[item.id];
-            return (
-              <div
-                key={item.id}
-                className={`faq-card ${isOpen ? "active" : ""}`}
-              >
-                <button
-                  type="button"
-                  className="faq-question-btn"
-                  onClick={() => toggleFaq(item.id)}
-                  aria-expanded={isOpen}
-                >
-                  <span className="faq-question-text">{item.question}</span>
-                  <span className={`faq-icon-wrapper ${isOpen ? "rotated" : ""}`}>
-                    <ChevronDown size={20} color="#22c55e" strokeWidth={2.5} />
-                  </span>
-                </button>
-
-                {isOpen && (
-                  <div className="faq-answer-box">
-                    <p>{item.answer}</p>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </section>
-    </main>
         {/* Thanh Tìm Kiếm Động */}
         <div
           style={{
@@ -497,7 +386,9 @@ export default function Guide() {
                 top: "50%",
                 transform: "translateY(-50%)",
                 background: "transparent",
+                border: "none",
                 color: "var(--text-muted)",
+                cursor: "pointer",
                 padding: "0.25rem",
               }}
             >
@@ -529,6 +420,7 @@ export default function Guide() {
               color: activeTab === "ALL" ? "#ffffff" : "var(--text-muted)",
               border: activeTab === "ALL" ? "1px solid rgba(16, 185, 129, 0.4)" : "1px solid transparent",
               fontSize: "0.88rem",
+              cursor: "pointer",
             }}
           >
             Tất Cả ({WASTE_CATALOG.length})
@@ -544,6 +436,7 @@ export default function Guide() {
               color: activeTab === "RECYCLABLE" ? "var(--recyclable)" : "var(--text-muted)",
               border: activeTab === "RECYCLABLE" ? `1px solid var(--recyclable-border)` : "1px solid transparent",
               fontSize: "0.88rem",
+              cursor: "pointer",
             }}
           >
             🟢 Tái Chế (5)
@@ -559,6 +452,7 @@ export default function Guide() {
               color: activeTab === "NON_RECYCLABLE" ? "#cbd5e1" : "var(--text-muted)",
               border: activeTab === "NON_RECYCLABLE" ? `1px solid var(--non-recyclable-border)` : "1px solid transparent",
               fontSize: "0.88rem",
+              cursor: "pointer",
             }}
           >
             ⚪ Sinh Hoạt (11)
@@ -574,6 +468,7 @@ export default function Guide() {
               color: activeTab === "HAZARDOUS" ? "var(--hazardous)" : "var(--text-muted)",
               border: activeTab === "HAZARDOUS" ? `1px solid var(--hazardous-border)` : "1px solid transparent",
               fontSize: "0.88rem",
+              cursor: "pointer",
             }}
           >
             🔴 Nguy Hại (6)
@@ -596,7 +491,7 @@ export default function Guide() {
               setActiveTab("ALL");
             }}
             className="btn-secondary"
-            style={{ padding: "0.5rem 1.25rem", borderRadius: "8px" }}
+            style={{ padding: "0.5rem 1.25rem", borderRadius: "8px", cursor: "pointer" }}
           >
             Đặt Lại Tìm Kiếm
           </button>
@@ -614,6 +509,67 @@ export default function Guide() {
           ))}
         </div>
       )}
+
+      {/* FAQ Section */}
+      <section className="faq-section">
+        <div className="faq-header">
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.45rem",
+              padding: "0.35rem 0.95rem",
+              borderRadius: "9999px",
+              background: "rgba(16, 185, 129, 0.12)",
+              border: "1px solid rgba(16, 185, 129, 0.3)",
+              color: "var(--primary-light)",
+              fontSize: "0.82rem",
+              fontWeight: 600,
+              marginBottom: "0.85rem",
+            }}
+          >
+            <HelpCircle size={15} />
+            <span>Giải Đáp Thắc Mắc</span>
+          </div>
+
+          <h2 style={{ fontSize: "2rem", fontWeight: 800, marginBottom: "0.5rem" }}>
+            Câu Hỏi Thường Gặp
+          </h2>
+          <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>
+            Những thắc mắc phổ biến về quy chuẩn phân loại và cách thức vận hành hệ thống AI
+          </p>
+        </div>
+
+        <div className="faq-container">
+          {FAQ_LIST.map((item) => {
+            const isOpen = !!openFaqs[item.id];
+            return (
+              <div
+                key={item.id}
+                className={`faq-card ${isOpen ? "active" : ""}`}
+              >
+                <button
+                  type="button"
+                  className="faq-question-btn"
+                  onClick={() => toggleFaq(item.id)}
+                  aria-expanded={isOpen}
+                >
+                  <span className="faq-question-text">{item.question}</span>
+                  <span className={`faq-icon-wrapper ${isOpen ? "rotated" : ""}`}>
+                    <ChevronDown size={18} strokeWidth={2.5} />
+                  </span>
+                </button>
+
+                {isOpen && (
+                  <div className="faq-answer-box">
+                    <p>{item.answer}</p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }

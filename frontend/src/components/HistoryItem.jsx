@@ -1,21 +1,8 @@
-import { NavLink, useNavigate } from "react-router-dom";
-
-export default function Navbar({ user, setUser }) {
-  const navigate = useNavigate();
-
-  const logout = () => {
-    localStorage.removeItem("currentUser");
-    setUser(null);
-    navigate("/");
-  };
-
-  const navClass = ({ isActive }) =>
-    isActive ? "active-link" : "";
 import React, { useState } from "react";
-import { Recycle, Flame, AlertTriangle, Clock, Calendar, CheckCircle2, Flag } from "lucide-react";
+import { Recycle, Flame, AlertTriangle, Calendar, CheckCircle2, Flag } from "lucide-react";
 import ReportModal from "./ReportModal";
 
-// Từ điển tên tiếng Việt
+// Từ điển tên tiếng Việt chuẩn hóa
 const VIETNAMESE_NAMES = {
   cardboard_box: "Thùng Carton",
   can: "Lon Kim Loại",
@@ -47,15 +34,19 @@ const VIETNAMESE_NAMES = {
 export default function HistoryItem({ item, user }) {
   const [showReportModal, setShowReportModal] = useState(false);
   const [reported, setReported] = useState(false);
-  const formattedTime = item.createdAt?.toDate
-    ? item.createdAt.toDate().toLocaleString("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "Vừa xong";
+
+  let formattedTime = "Vừa xong";
+  if (item.createdAt?.toDate) {
+    formattedTime = item.createdAt.toDate().toLocaleString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } else if (item.time) {
+    formattedTime = item.time;
+  }
 
   const getCategoryDetails = (type) => {
     switch (type) {
@@ -83,65 +74,11 @@ export default function HistoryItem({ item, user }) {
     }
   };
 
-  const cat = getCategoryDetails(item.wasteType);
-  const displayName = VIETNAMESE_NAMES[item.className] || item.className;
+  const cat = getCategoryDetails(item.wasteType || item.type);
+  const rawClass = item.className || item.class;
+  const displayName = VIETNAMESE_NAMES[rawClass] || rawClass || "Vật thể";
 
   return (
-    <nav className="navbar">
-      <div className="nav-container">
-        <div className="brand" onClick={() => navigate("/")}>
-          <div className="brand-icon">♻</div>
-          <span>EcoSort AI</span>
-        </div>
-
-        <div className="nav-links">
-          <NavLink to="/" className={navClass}>
-            Trang Chủ
-          </NavLink>
-
-          {user && (
-            <NavLink to="/scan" className={navClass}>
-              Quét AI
-            </NavLink>
-          )}
-
-          {user && (
-            <NavLink to="/history" className={navClass}>
-              Lịch Sử
-            </NavLink>
-          )}
-
-          <NavLink to="/guide" className={navClass}>
-            Hướng Dẫn
-          </NavLink>
-
-          {user?.role === "admin" && (
-            <NavLink to="/admin" className={navClass}>
-              Thống Kê
-            </NavLink>
-          )}
-        </div>
-
-        {!user ? (
-          <button
-            className="start-btn"
-            onClick={() => navigate("/login")}
-          >
-            Bắt Đầu Ngay
-          </button>
-        ) : (
-          <div className="user-box">
-              <span>
-            {user.role === "admin" ? "👑 " : "👤 "}
-            {user.name}
-            </span>
-            <button className="logout-btn" onClick={logout}>
-              Đăng xuất
-            </button>
-          </div>
-        )}
-      </div>
-    </nav>
     <div
       className="glass-card card-interactive"
       style={{
@@ -248,8 +185,8 @@ export default function HistoryItem({ item, user }) {
         isOpen={showReportModal}
         onClose={() => setShowReportModal(false)}
         prediction={{
-          className: item.className,
-          wasteType: item.wasteType,
+          className: rawClass,
+          wasteType: item.wasteType || item.type,
           confidence: item.confidence,
           guide: item.guide,
         }}

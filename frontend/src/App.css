@@ -8,9 +8,10 @@
 }
 body {
   margin: 0;
-  background: #f8fafc;
-  color: #1e293b;
+  background: #090d16;
+  color: #f8fafc;
   font-family: "Inter", sans-serif;
+  min-height: 100vh;
 }
 
 h1, h2, h3 {
@@ -170,6 +171,8 @@ a {
 .stat h2 {
   color: #4ade80;
   font-size: 42px;
+}
+
 /* ==========================================================================
    EcoSort AI - Modern Design System & Global Styles
    ========================================================================== */
@@ -995,6 +998,8 @@ th, td {
   border-radius: 999px;
   font-weight: 800;
   font-size: 14px;
+}
+
 body {
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background-color: var(--bg-dark);
@@ -1507,6 +1512,8 @@ button:active {
   .user-form {
     grid-template-columns: 1fr;
   }
+}
+
 /* Cards & Glassmorphism */
 .card, .glass-card {
   background: var(--bg-card);
@@ -1717,3 +1724,109 @@ button:active {
 ::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
+
+/* ==========================================================================
+   FAQ Section Styles (Glassmorphism & Interactive Accordion)
+   ========================================================================== */
+.faq-section {
+  max-width: 860px;
+  margin: 3.5rem auto 2rem auto;
+}
+
+.faq-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.faq-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.faq-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.faq-card:hover {
+  border-color: rgba(16, 185, 129, 0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.faq-card.active {
+  border-color: var(--primary);
+  background: rgba(22, 30, 49, 0.9);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(16, 185, 129, 0.15);
+}
+
+.faq-question-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 1.15rem 1.35rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--text-main);
+}
+
+.faq-question-text {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.5;
+  flex: 1;
+}
+
+.faq-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--primary);
+  flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s ease;
+}
+
+.faq-icon-wrapper.rotated {
+  transform: rotate(180deg);
+  background: rgba(16, 185, 129, 0.25);
+}
+
+.faq-answer-box {
+  padding: 0 1.35rem 1.25rem 1.35rem;
+  animation: faqFadeIn 0.25s ease-out;
+}
+
+.faq-answer-box p {
+  color: var(--text-muted);
+  line-height: 1.7;
+  font-size: 0.92rem;
+  margin: 0;
+  padding-top: 0.85rem;
+  border-top: 1px dashed var(--border-color);
+}
+
+@keyframes faqFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

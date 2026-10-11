@@ -1,26 +1,7 @@
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import Webcam from "react-webcam";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-
-import { predictWasteImage } from "../api/wasteApi";
 import { db } from "../firebase";
-
-export default function Scan({ user }) {
-  const webcamRef = useRef(null);
-
-  const [mode, setMode] = useState("upload");
-  const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState(null);
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const chooseFile = (e) => {
-    const img = e.target.files[0];
-
-    if (!img) return;
-
-    setFile(img);
-    setPreview(URL.createObjectURL(img));
 import { predictWasteImage } from "../api/wasteAPI";
 import UploadCard from "../components/UploadCard";
 import ResultCard from "../components/ResultCard";
@@ -30,14 +11,12 @@ import {
   Sparkles, 
   RotateCcw, 
   AlertCircle,
-  ScanLine,
-  Zap,
-  Info
+  Zap
 } from "lucide-react";
 
 /**
  * Trang Quét Rác AI (EcoSort AI Scanner)
- * Trung tâm nhận diện: Hỗ trợ Upload ảnh & Quét Webcam trực tiếp qua YOLOv8
+ * Hỗ trợ Upload ảnh kéo thả & Quét Webcam trực tiếp qua mô hình YOLOv8 Nano
  */
 export default function Scan({ user }) {
   const webcamRef = useRef(null);
@@ -58,31 +37,18 @@ export default function Scan({ user }) {
     setSelectedFileName(file.name || "waste_image.jpg");
     setPreviewUrl(URL.createObjectURL(file));
     setResult(null);
+    setErrorMessage("");
   };
 
-  const captureWebcam = async () => {
+  // Handler: Chụp từ webcam
+  const handleCaptureWebcam = async () => {
     const imageSrc = webcamRef.current?.getScreenshot();
 
     if (!imageSrc) {
-      alert("Không thể chụp ảnh từ webcam.");
+      setErrorMessage("Không thể chụp khung hình từ camera. Hãy đảm bảo quyền truy cập camera đã được cấp.");
       return;
     }
 
-    setPreview(imageSrc);
-
-    const blob = await fetch(imageSrc).then((res) => res.blob());
-
-    const webcamFile = new File([blob], "webcam-capture.jpg", {
-      type: "image/jpeg",
-    });
-
-    setFile(webcamFile);
-    setResult(null);
-  };
-
-  const resetScan = () => {
-    setFile(null);
-    setPreview(null);
     try {
       const fetchRes = await fetch(imageSrc);
       const blob = await fetchRes.blob();
@@ -105,99 +71,73 @@ export default function Scan({ user }) {
     setSelectedFileName("");
     setPreviewUrl(null);
     setResult(null);
+    setErrorMessage("");
   };
 
-  const saveHistoryToFirestore = async (data) => {
-    await addDoc(collection(db, "history"), {
-      uid: user?.uid || "guest",
-      email: user?.email || "guest",
-      class: data.class,
-      type: data.type,
-      confidence: data.confidence,
-      guide: data.guide,
-      imagePreview: preview || "",
-      createdAt: serverTimestamp(),
-    });
-  };
-
-  const saveHistoryToLocalStorage = (data) => {
-    const historyKey = user?.uid ? `history_${user.uid}` : "history_guest";
-
-    const history = JSON.parse(localStorage.getItem(historyKey)) || [];
-
-    history.unshift({
-      ...data,
-      uid: user?.uid || "guest",
-      email: user?.email || "guest",
-      time: new Date().toLocaleString("vi-VN"),
-    });
-
-    localStorage.setItem(historyKey, JSON.stringify(history));
-  };
-
-  const analyze = async () => {
-    if (!file) {
-      alert("Vui lòng chọn hoặc chụp ảnh trước.");
+  // Handler: Phân tích ảnh qua AI Backend
+  const handlePredict = async () => {
+    if (!selectedFile) {
+      setErrorMessage("Vui lòng tải ảnh lên hoặc chụp từ camera trước.");
       return;
     }
 
     try {
       setLoading(true);
-
-      const data = await predictWasteImage(file);
-
-      setResult(data);
-
-      saveHistoryToLocalStorage(data);
-
-      await saveHistoryToFirestore(data);
-    } catch (error) {
-      console.error("SCAN ERROR:", error);
-      alert("Lỗi khi phân tích hoặc lưu lịch sử.");
       setErrorMessage("");
 
       // 1. Gọi API AI Backend
       const predictionData = await predictWasteImage(selectedFile);
       setResult(predictionData);
 
-      // 2. Đồng bộ kết quả vào Firestore nếu người dùng đã đăng nhập
-      if (user && predictionData.type !== "UNKNOWN") {
-        await addDoc(collection(db, "history"), {
-          userId: user.uid,
-          userEmail: user.email || "",
-          className: predictionData.class,
-          wasteType: predictionData.type,
-          confidence: predictionData.confidence,
-          guide: predictionData.guide,
-          color: predictionData.color,
-          createdAt: serverTimestamp(),
-        });
+      // 2. Lưu vào LocalStorage
+      const historyKey = user?.uid ? `history_${user.uid}` : "history_guest";
+      const localHistory = JSON.parse(localStorage.getItem(historyKey) || "[]");
+      localHistory.unshift({
+        className: predictionData.class,
+        wasteType: predictionData.type,
+        confidence: predictionData.confidence,
+        guide: predictionData.guide,
+        color: predictionData.color,
+        time: new Date().toLocaleString("vi-VN"),
+      });
+      localStorage.setItem(historyKey, JSON.stringify(localHistory.slice(0, 50)));
+
+      // 3. Đồng bộ kết quả vào Firestore nếu người dùng đã đăng nhập
+      if (user?.uid && predictionData.type !== "UNKNOWN") {
+        try {
+          await addDoc(collection(db, "history"), {
+            userId: user.uid,
+            userEmail: user.email || "",
+            className: predictionData.class,
+            wasteType: predictionData.type,
+            confidence: predictionData.confidence,
+            guide: predictionData.guide,
+            color: predictionData.color,
+            createdAt: serverTimestamp(),
+          });
+        } catch (firestoreErr) {
+          console.warn("Không thể lưu lịch sử vào Firestore:", firestoreErr);
+        }
       }
     } catch (err) {
-      setErrorMessage("Không thể kết nối máy chủ AI backend hoặc xử lý ảnh thất bại. Hãy chắc chắn backend FastAPI đang chạy tại http://127.0.0.1:8000.");
-      console.error(err);
+      console.error("Lỗi nhận diện ảnh:", err);
+      setErrorMessage(
+        "Không thể kết nối máy chủ AI backend hoặc xử lý ảnh thất bại. Hãy chắc chắn backend FastAPI đang chạy tại http://127.0.0.1:8000."
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="scan-page">
-      <div className="scan-left">
-        <h1>Nhận Diện Rác Thải</h1>
-        <p>Tải ảnh lên hoặc chụp trực tiếp để AI phân loại giúp bạn.</p>
-
-        <div className="scan-tabs">
-          <button
-            type="button"
-            className={mode === "upload" ? "tab-active" : ""}
-            onClick={() => {
-              setMode("upload");
-              resetScan();
-            }}
-          >
-            🖼 Tải ảnh
-    <div className="page-wrapper container animate-fade-in" style={{ maxWidth: "860px" }}>
+    <div
+      className="page-wrapper container animate-fade-in"
+      style={{
+        maxWidth: "860px",
+        margin: "0 auto",
+        padding: "2rem 1.5rem 4rem 1.5rem",
+      }}
+    >
       {/* Page Header */}
       <div style={{ textAlign: "center", marginBottom: "2rem" }}>
         <div
@@ -250,7 +190,14 @@ export default function Scan({ user }) {
               background: mode === "upload" ? "linear-gradient(135deg, #10b981, #059669)" : "transparent",
               color: mode === "upload" ? "#ffffff" : "var(--text-muted)",
               boxShadow: mode === "upload" ? "0 4px 12px var(--primary-glow)" : "none",
+              border: "none",
               fontSize: "0.9rem",
+              fontWeight: 600,
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.45rem",
+              transition: "all 0.2s ease",
             }}
           >
             <UploadCloud size={17} />
@@ -259,13 +206,6 @@ export default function Scan({ user }) {
 
           <button
             type="button"
-            className={mode === "camera" ? "tab-active" : ""}
-            onClick={() => {
-              setMode("camera");
-              resetScan();
-            }}
-          >
-            📷 Webcam
             onClick={() => {
               setMode("webcam");
               if (!result) handleReset();
@@ -276,34 +216,22 @@ export default function Scan({ user }) {
               background: mode === "webcam" ? "linear-gradient(135deg, #10b981, #059669)" : "transparent",
               color: mode === "webcam" ? "#ffffff" : "var(--text-muted)",
               boxShadow: mode === "webcam" ? "0 4px 12px var(--primary-glow)" : "none",
+              border: "none",
               fontSize: "0.9rem",
+              fontWeight: 600,
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.45rem",
+              transition: "all 0.2s ease",
             }}
           >
             <Camera size={17} />
             Quét Qua Camera
           </button>
         </div>
+      </div>
 
-        {mode === "upload" ? (
-          <label className="upload-zone">
-            {preview ? (
-              <img src={preview} alt="preview" className="preview" />
-            ) : (
-              <>
-                <div className="upload-icon">☁️</div>
-                <h3>Kéo và thả ảnh vào đây</h3>
-                <p>Hỗ trợ JPG, PNG, JPEG</p>
-                <span>Chọn Ảnh Từ Thiết Bị</span>
-              </>
-            )}
-
-            <input type="file" accept="image/*" hidden onChange={chooseFile} />
-          </label>
-        ) : (
-          <div className="webcam-zone">
-            {preview ? (
-              <img src={preview} alt="webcam-preview" className="preview" />
-            ) : (
       {/* Thông báo lỗi nếu có */}
       {errorMessage && (
         <div
@@ -356,7 +284,15 @@ export default function Scan({ user }) {
                   type="button"
                   onClick={handleReset}
                   className="btn-secondary"
-                  style={{ padding: "0.55rem 1.25rem", fontSize: "0.88rem", borderRadius: "8px" }}
+                  style={{
+                    padding: "0.55rem 1.25rem",
+                    fontSize: "0.88rem",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.4rem",
+                  }}
                 >
                   <RotateCcw size={16} />
                   Chụp Lại Khung Hình Khác
@@ -365,7 +301,7 @@ export default function Scan({ user }) {
             </div>
           ) : (
             <div style={{ position: "relative", maxWidth: "560px", margin: "0 auto", overflow: "hidden", borderRadius: "16px" }}>
-              {/* Futuristic Viewfinder Reticle & Laser */}
+              {/* Viewfinder Reticle & Laser */}
               <div className="viewfinder-corner corner-tl" />
               <div className="viewfinder-corner corner-tr" />
               <div className="viewfinder-corner corner-bl" />
@@ -376,70 +312,6 @@ export default function Scan({ user }) {
                 ref={webcamRef}
                 audio={false}
                 screenshotFormat="image/jpeg"
-                className="webcam"
-                videoConstraints={{
-                  facingMode: "environment",
-                }}
-              />
-            )}
-
-            <button type="button" className="camera-btn" onClick={captureWebcam}>
-              📸 Chụp ảnh
-            </button>
-
-            {preview && (
-              <button type="button" className="secondary-btn" onClick={resetScan}>
-                🔄 Chụp lại
-              </button>
-            )}
-          </div>
-        )}
-
-        <button
-          type="button"
-          className="primary-btn"
-          onClick={analyze}
-          disabled={!file || loading}
-        >
-          {loading ? "Đang phân tích..." : "🔍 Phân tích ngay"}
-        </button>
-
-        <div className="tips-grid">
-          <div>
-            💡 <b>Ánh sáng tốt</b>
-            <p>Chụp ở nơi đủ sáng để AI nhận diện tốt hơn.</p>
-          </div>
-
-          <div>
-            🎯 <b>Vật thể rõ ràng</b>
-            <p>Tránh chụp nhiều loại rác cùng một lúc.</p>
-          </div>
-
-          <div>
-            🧼 <b>Làm sạch rác</b>
-            <p>Nên đổ sạch chất lỏng bên trong chai lọ.</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="scan-right">
-        <div className="result-panel">
-          {result ? (
-            <>
-              {preview && <img src={preview} alt="result" />}
-
-              <div className="result-content">
-                <h2>{result.class}</h2>
-                <p>Độ tin cậy: {result.confidence}%</p>
-
-                <div className="info-row">✅ Loại: {result.type}</div>
-                <div className="info-row">⚠️ {result.guide}</div>
-                <div className="info-row">
-                  🌱 Kết quả đã được lưu vào lịch sử
-                </div>
-
-                <button type="button" className="primary-btn" onClick={resetScan}>
-                  Quét ảnh mới
                 videoConstraints={{ facingMode: facingMode }}
                 style={{
                   width: "100%",
@@ -493,6 +365,10 @@ export default function Scan({ user }) {
                     padding: "0.85rem 2.25rem",
                     fontSize: "1.05rem",
                     fontWeight: 700,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
                   }}
                 >
                   <Camera size={20} />
@@ -503,22 +379,21 @@ export default function Scan({ user }) {
                   type="button"
                   onClick={() => setFacingMode((prev) => (prev === "user" ? "environment" : "user"))}
                   className="btn-secondary btn-pill"
-                  style={{ padding: "0.85rem 1rem", fontSize: "0.85rem" }}
+                  style={{
+                    padding: "0.85rem 1rem",
+                    fontSize: "0.85rem",
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                  }}
                   title="Đổi camera trước/sau"
                 >
                   <RotateCcw size={18} />
                 </button>
               </div>
-            </>
-          ) : (
-            <div className="empty-result">
-              <h2>Kết quả nhận diện</h2>
-              <p>Vui lòng tải ảnh hoặc chụp webcam để AI phân tích.</p>
             </div>
           )}
         </div>
-      </div>
-    </main>
       )}
 
       {/* Nút Thực Thi Phân Loại */}
@@ -533,6 +408,10 @@ export default function Scan({ user }) {
               fontSize: "1.15rem",
               fontWeight: 800,
               boxShadow: "0 8px 30px var(--primary-glow)",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.6rem",
             }}
           >
             <Zap size={22} />

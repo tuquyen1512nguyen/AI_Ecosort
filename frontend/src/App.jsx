@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
-import { Routes, Route, Link } from "react-router-dom";
+import { Routes, Route, Link, Navigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "./firebase";
-import { Leaf, Heart, Shield, Cpu, ExternalLink } from "lucide-react";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "./firebase";
+import { Leaf } from "lucide-react";
 
 import Navbar from "./components/Navbar";
 import ScrollToTop from "./components/ScrollToTop";
@@ -15,51 +14,69 @@ import Scan from "./pages/Scan";
 import History from "./pages/History";
 import Guide from "./pages/Guide";
 import Statistics from "./pages/Statistics";
+import Quiz from "./pages/Quiz";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
 import "./App.css";
-
-import Quiz from "./pages/Quiz";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
 
 /**
  * Ứng Dụng Chính - App Router & Layout Shell
  */
 export default function App() {
   const [user, setUser] = useState(null);
+  const [authChecking, setAuthChecking] = useState(true);
 
   useEffect(() => {
+    // 1. Kiểm tra session cục bộ ngay lập tức để giao diện không bị giật
     const savedUser = localStorage.getItem("currentUser");
-
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (e) {
+        console.error("Lỗi parse currentUser từ localStorage", e);
+      }
     }
+
+    // 2. Lắng nghe trạng thái từ Firebase Auth
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        let role = "user";
+        let name = firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "Người dùng";
+
+        try {
+          const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            role = data.role || "user";
+            name = data.displayName || data.name || name;
+          }
+        } catch (err) {
+          console.warn("Không thể tải document người dùng từ Firestore:", err);
+        }
+
+        const fullUser = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: name,
+          name: name,
+          role: role,
+        };
+
+        setUser(fullUser);
+        localStorage.setItem("currentUser", JSON.stringify(fullUser));
+      } else {
+        const saved = localStorage.getItem("currentUser");
+        if (!saved) {
+          setUser(null);
+        }
+      }
+      setAuthChecking(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  return (
-    <div className="app">
-      <Navbar user={user} setUser={setUser} />
-
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/guide" element={<Guide />} />
-        <Route path="/login" element={<Login setUser={setUser} />} />
-        <Route path="/register" element={<Register />} />
-
-        <Route path="/scan" element={<Scan user={user} />} />
-
-        <Route
-        path="/history"
-        element={user ? <History user={user} /> : <Navigate to="/login" />}
-        />
-
-        <Route
-        path="/statistics"
-        element={user?.role === "admin" ? <Statistics /> : <Navigate to="/" />}
-        />
-      </Routes>
   if (authChecking) {
     return (
       <div
@@ -70,6 +87,8 @@ export default function App() {
           alignItems: "center",
           height: "100vh",
           gap: "1rem",
+          background: "var(--bg-dark, #090d16)",
+          color: "var(--text-main, #f8fafc)",
         }}
       >
         <div
@@ -96,9 +115,9 @@ export default function App() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: "var(--bg-dark, #090d16)" }}>
       {/* Thanh điều hướng toàn cục */}
-      <Navbar user={user} />
+      <Navbar user={user} setUser={setUser} />
 
       {/* Bộ định tuyến các trang */}
       <main style={{ flex: 1 }}>
@@ -109,8 +128,9 @@ export default function App() {
           <Route path="/statistics" element={<Statistics user={user} />} />
           <Route path="/guide" element={<Guide />} />
           <Route path="/quiz" element={<Quiz user={user} />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/register" element={<Register />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
 
@@ -122,9 +142,10 @@ export default function App() {
           padding: "3rem 0 2rem 0",
           color: "var(--text-muted)",
           fontSize: "0.88rem",
+          marginTop: "auto",
         }}
       >
-        <div className="container">
+        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 1.5rem" }}>
           <div
             style={{
               display: "flex",
@@ -188,13 +209,13 @@ export default function App() {
                   FastAPI Python
                 </span>
                 <span style={{ fontSize: "0.75rem", padding: "0.25rem 0.6rem", background: "rgba(30, 41, 59, 0.8)", border: "1px solid var(--border-color)", borderRadius: "6px" }}>
-                  React 18 + Vite
+                  React 19 + Vite
                 </span>
                 <span style={{ fontSize: "0.75rem", padding: "0.25rem 0.6rem", background: "rgba(30, 41, 59, 0.8)", border: "1px solid var(--border-color)", borderRadius: "6px" }}>
                   Firebase Firestore
                 </span>
                 <span style={{ fontSize: "0.75rem", padding: "0.25rem 0.6rem", background: "rgba(30, 41, 59, 0.8)", border: "1px solid var(--border-color)", borderRadius: "6px" }}>
-                  3 Nhóm Luật Môi Trường
+                  3 Nhóm Phân Loại
                 </span>
               </div>
             </div>

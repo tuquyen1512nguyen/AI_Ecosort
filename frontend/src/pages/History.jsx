@@ -1,13 +1,9 @@
-import { useEffect, useState } from "react";
-
-export default function History({ user }) {
-  const [history, setHistory] = useState([]);
 import React, { useEffect, useState } from "react";
 import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import HistoryItem from "../components/HistoryItem";
 import { Link } from "react-router-dom";
-import { History as HistoryIcon, Search, X, LogIn, Scan, Sparkles, Filter } from "lucide-react";
+import { History as HistoryIcon, Search, X, LogIn, Scan, Trash2 } from "lucide-react";
 
 /**
  * Trang Lịch Sử Quét Rác Cá Nhân
@@ -19,32 +15,65 @@ export default function History({ user }) {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    if (!user?.uid) return;
+    async function fetchHistory() {
+      if (!user?.uid) {
+        // Lấy lịch sử khách từ LocalStorage nếu chưa đăng nhập
+        const guestHistory = JSON.parse(localStorage.getItem("history_guest") || "[]");
+        setHistoryList(guestHistory);
+        setLoading(false);
+        return;
+      }
 
-    const historyKey = `history_${user.uid}`;
-    const savedHistory = JSON.parse(localStorage.getItem(historyKey)) || [];
+      setLoading(true);
       try {
-        setLoading(true);
+        // 1. Thử lấy từ Firestore
         const q = query(
           collection(db, "history"),
           where("userId", "==", user.uid),
           orderBy("createdAt", "desc")
         );
+        const snapshot = await getDocs(q);
+        const firestoreList = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
 
-    setHistory(savedHistory);
+        if (firestoreList.length > 0) {
+          setHistoryList(firestoreList);
+        } else {
+          // 2. Dự phòng bằng LocalStorage nếu Firestore chưa có doc
+          const localList = JSON.parse(localStorage.getItem(`history_${user.uid}`) || "[]");
+          setHistoryList(localList);
+        }
+      } catch (err) {
+        console.warn("Lỗi tải lịch sử từ Firestore, sử dụng bộ nhớ cục bộ:", err);
+        const localList = JSON.parse(localStorage.getItem(`history_${user.uid}`) || "[]");
+        setHistoryList(localList);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchHistory();
   }, [user]);
 
-  const clearHistory = () => {
-    if (!user?.uid) return;
-
-    const historyKey = `history_${user.uid}`;
-
-    localStorage.removeItem(historyKey);
-    setHistory([]);
+  const clearLocalHistory = () => {
+    const key = user?.uid ? `history_${user.uid}` : "history_guest";
+    localStorage.removeItem(key);
+    setHistoryList([]);
   };
-  if (!user) {
+
+  if (!user && historyList.length === 0) {
     return (
-      <div className="page-wrapper container animate-fade-in" style={{ textAlign: "center", maxWidth: "600px" }}>
+      <div
+        className="page-wrapper container animate-fade-in"
+        style={{
+          textAlign: "center",
+          maxWidth: "600px",
+          margin: "3rem auto",
+          padding: "0 1rem",
+        }}
+      >
         <div className="glass-card" style={{ padding: "3.5rem 2rem", borderRadius: "var(--radius-xl)" }}>
           <div
             style={{
@@ -68,13 +97,20 @@ export default function History({ user }) {
           </h2>
 
           <p style={{ color: "var(--text-muted)", margin: "0 auto 2rem auto", fontSize: "0.95rem", lineHeight: 1.6 }}>
-            Vui lòng đăng nhập để lưu trữ vĩnh viễn nhật ký các lần phân loại rác, tích lũy điểm thưởng Eco-points và theo dõi biểu đồ giảm phát thải cá nhân.
+            Vui lòng đăng nhập để lưu trữ vĩnh viễn nhật ký các lần phân loại rác, tích lũy điểm thưởng Eco-points và theo dõi báo cáo giảm phát thải cá nhân.
           </p>
 
           <Link to="/login">
             <button
               className="btn-primary btn-pill"
-              style={{ padding: "0.85rem 2.25rem", fontSize: "1rem" }}
+              style={{
+                padding: "0.85rem 2.25rem",
+                fontSize: "1rem",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.5rem",
+              }}
             >
               <LogIn size={18} />
               Đăng Nhập Ngay
@@ -87,20 +123,24 @@ export default function History({ user }) {
 
   // Lọc dữ liệu theo tab và từ khóa
   const filteredList = historyList.filter((item) => {
-    const matchesTab = filterType === "ALL" ? true : item.wasteType === filterType;
+    const itemType = item.wasteType || item.type;
+    const itemClass = item.className || item.class || "";
+    const matchesTab = filterType === "ALL" ? true : itemType === filterType;
     const matchesSearch =
-      (item.className && item.className.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      itemClass.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (item.guide && item.guide.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesTab && matchesSearch;
   });
 
   return (
-    <main className="page">
-      <div className="page-head">
-        <div>
-          <h1>Lịch Sử Quét Rác</h1>
-          <p>Hiển thị lại các lần quét rác của {user?.name || user?.email}.</p>
-    <div className="page-wrapper container animate-fade-in" style={{ maxWidth: "860px" }}>
+    <div
+      className="page-wrapper container animate-fade-in"
+      style={{
+        maxWidth: "860px",
+        margin: "0 auto",
+        padding: "2rem 1.5rem 4rem 1.5rem",
+      }}
+    >
       {/* Header */}
       <div
         style={{
@@ -137,18 +177,43 @@ export default function History({ user }) {
           </p>
         </div>
 
-        <div
-          style={{
-            background: "rgba(16, 185, 129, 0.12)",
-            border: "1px solid rgba(16, 185, 129, 0.3)",
-            color: "var(--primary)",
-            padding: "0.5rem 1rem",
-            borderRadius: "10px",
-            fontSize: "0.9rem",
-            fontWeight: 700,
-          }}
-        >
-          {historyList.length} Lần Quét
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <div
+            style={{
+              background: "rgba(16, 185, 129, 0.12)",
+              border: "1px solid rgba(16, 185, 129, 0.3)",
+              color: "var(--primary)",
+              padding: "0.5rem 1rem",
+              borderRadius: "10px",
+              fontSize: "0.9rem",
+              fontWeight: 700,
+            }}
+          >
+            {historyList.length} Lần Quét
+          </div>
+
+          {historyList.length > 0 && (
+            <button
+              type="button"
+              onClick={clearLocalHistory}
+              className="btn-secondary"
+              style={{
+                padding: "0.5rem 0.85rem",
+                fontSize: "0.82rem",
+                borderRadius: "10px",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.35rem",
+                color: "#f87171",
+                borderColor: "rgba(239, 68, 68, 0.3)",
+              }}
+              title="Xóa bộ nhớ lịch sử cục bộ"
+            >
+              <Trash2 size={14} />
+              Xóa Lịch Sử
+            </button>
+          )}
         </div>
       </div>
 
@@ -175,6 +240,7 @@ export default function History({ user }) {
               color: filterType === "ALL" ? "#ffffff" : "var(--text-muted)",
               border: filterType === "ALL" ? "1px solid rgba(16, 185, 129, 0.4)" : "1px solid var(--border-color)",
               fontSize: "0.85rem",
+              cursor: "pointer",
             }}
           >
             Tất Cả
@@ -189,6 +255,7 @@ export default function History({ user }) {
               color: filterType === "RECYCLABLE" ? "var(--recyclable)" : "var(--text-muted)",
               border: filterType === "RECYCLABLE" ? `1px solid var(--recyclable-border)` : "1px solid var(--border-color)",
               fontSize: "0.85rem",
+              cursor: "pointer",
             }}
           >
             🟢 Tái Chế
@@ -203,6 +270,7 @@ export default function History({ user }) {
               color: filterType === "NON_RECYCLABLE" ? "#cbd5e1" : "var(--text-muted)",
               border: filterType === "NON_RECYCLABLE" ? `1px solid var(--non-recyclable-border)` : "1px solid var(--border-color)",
               fontSize: "0.85rem",
+              cursor: "pointer",
             }}
           >
             ⚪ Sinh Hoạt
@@ -217,6 +285,7 @@ export default function History({ user }) {
               color: filterType === "HAZARDOUS" ? "var(--hazardous)" : "var(--text-muted)",
               border: filterType === "HAZARDOUS" ? `1px solid var(--hazardous-border)` : "1px solid var(--border-color)",
               fontSize: "0.85rem",
+              cursor: "pointer",
             }}
           >
             🔴 Nguy Hại
@@ -246,58 +315,23 @@ export default function History({ user }) {
             <button
               type="button"
               onClick={() => setSearchQuery("")}
-              style={{ position: "absolute", right: "0.5rem", top: "50%", transform: "translateY(-50%)", background: "transparent", color: "var(--text-muted)" }}
+              style={{
+                position: "absolute",
+                right: "0.5rem",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "transparent",
+                border: "none",
+                color: "var(--text-muted)",
+                cursor: "pointer",
+              }}
             >
               <X size={14} />
             </button>
           )}
         </div>
-
-        {history.length > 0 && (
-          <button className="primary-small" onClick={clearHistory}>
-            Xóa lịch sử
-          </button>
-        )}
       </div>
 
-      <div className="table-card">
-        <h3>Nhật Ký Quét</h3>
-
-        <table>
-          <thead>
-            <tr>
-              <th>Thời gian</th>
-              <th>Loại rác nhận diện</th>
-              <th>Nhóm rác</th>
-              <th>Độ tin cậy</th>
-              <th>Hướng dẫn</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {history.length === 0 ? (
-              <tr>
-                <td colSpan="5">Chưa có lịch sử quét.</td>
-              </tr>
-            ) : (
-              history.map((item, index) => (
-                <tr key={index}>
-                  <td>{item.time}</td>
-                  <td>
-                    <b>{item.class}</b>
-                  </td>
-                  <td>
-                    <span className="tag">{item.type}</span>
-                  </td>
-                  <td>{item.confidence}%</td>
-                  <td>{item.guide}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </main>
       {/* History List or Empty States */}
       {loading ? (
         <div className="glass-card" style={{ textAlign: "center", padding: "3.5rem" }}>
@@ -314,7 +348,7 @@ export default function History({ user }) {
           </p>
 
           <Link to="/scan">
-            <button className="btn-primary" style={{ padding: "0.65rem 1.75rem", borderRadius: "8px" }}>
+            <button className="btn-primary" style={{ padding: "0.65rem 1.75rem", borderRadius: "8px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
               <Scan size={18} />
               Quét Rác Ngay
             </button>
@@ -322,8 +356,8 @@ export default function History({ user }) {
         </div>
       ) : (
         <div>
-          {filteredList.map((item) => (
-            <HistoryItem key={item.id} item={item} user={user} />
+          {filteredList.map((item, index) => (
+            <HistoryItem key={item.id || index} item={item} user={user} />
           ))}
         </div>
       )}
