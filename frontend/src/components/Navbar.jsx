@@ -117,7 +117,7 @@ export default function Navbar({ user }) {
               </span>
             </div>
             <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", marginTop: "-2px" }}>
-              Smart Waste Sorter
+              Phân Loại Rác Thông Minh
             </div>
           </div>
         </Link>
@@ -132,7 +132,7 @@ export default function Navbar({ user }) {
           className="desktop-nav-container"
         >
           <style>{`
-            @media (min-width: 768px) {
+            @media (min-width: 992px) {
               .desktop-nav-container { display: flex !important; }
               .desktop-auth-container { display: flex !important; }
               .mobile-toggle-btn { display: none !important; }
