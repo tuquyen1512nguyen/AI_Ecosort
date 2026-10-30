@@ -17,6 +17,7 @@ import Guide from "./pages/Guide";
 import Quiz from "./pages/Quiz";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Profile from "./pages/Profile";
 
 /**
  * Ứng Dụng Chính - App Router & Layout Shell
@@ -84,6 +85,7 @@ export default function App() {
           <Route path="/statistics" element={<Statistics user={user} />} />
           <Route path="/guide" element={<Guide />} />
           <Route path="/quiz" element={<Quiz user={user} />} />
+          <Route path="/profile" element={<Profile user={user} />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Routes>
@@ -147,6 +149,7 @@ export default function App() {
                 <Link to="/quiz" style={{ color: "var(--text-muted)" }}>Trắc Nghiệm Sống Xanh</Link>
                 <Link to="/statistics" style={{ color: "var(--text-muted)" }}>Thống Kê Điểm Sống Xanh</Link>
                 <Link to="/history" style={{ color: "var(--text-muted)" }}>Lịch Sử Cá Nhân</Link>
+                <Link to="/profile" style={{ color: "var(--text-muted)" }}>Hồ Sơ Sống Xanh</Link>
               </div>
             </div>
 

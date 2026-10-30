@@ -590,3 +590,11 @@ button:active {
     viewBox: 0 0 44 44 !important;
   }
 }
+
+/* Navbar Profile Pill Hover Glow */
+.navbar-profile-pill:hover {
+  background: rgba(30, 41, 59, 0.95) !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
+  transform: translateY(-1px);
+}
