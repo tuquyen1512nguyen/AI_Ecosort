@@ -18,6 +18,7 @@ import Quiz from "./pages/Quiz";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
+import AdminFeedback from "./pages/AdminFeedback";
 
 /**
  * Ứng Dụng Chính - App Router & Layout Shell
@@ -86,6 +87,8 @@ export default function App() {
           <Route path="/guide" element={<Guide />} />
           <Route path="/quiz" element={<Quiz user={user} />} />
           <Route path="/profile" element={<Profile user={user} />} />
+          <Route path="/admin" element={<AdminFeedback user={user} />} />
+          <Route path="/admin/feedback" element={<AdminFeedback user={user} />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Routes>
@@ -150,6 +153,7 @@ export default function App() {
                 <Link to="/statistics" style={{ color: "var(--text-muted)" }}>Thống Kê Điểm Sống Xanh</Link>
                 <Link to="/history" style={{ color: "var(--text-muted)" }}>Lịch Sử Cá Nhân</Link>
                 <Link to="/profile" style={{ color: "var(--text-muted)" }}>Hồ Sơ Sống Xanh</Link>
+                <Link to="/admin" style={{ color: "var(--primary-light)", fontWeight: 600 }}>Quản Trị AI (Active Learning)</Link>
               </div>
             </div>
 

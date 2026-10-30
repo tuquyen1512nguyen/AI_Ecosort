@@ -14,7 +14,8 @@ import {
   Menu, 
   X,
   User,
-  Trophy
+  Trophy,
+  ShieldCheck
 } from "lucide-react";
 
 /**
@@ -40,6 +41,7 @@ export default function Navbar({ user }) {
     { to: "/quiz", label: "Trắc Nghiệm", icon: <Trophy size={18} /> },
     { to: "/history", label: "Lịch Sử", icon: <History size={18} /> },
     { to: "/statistics", label: "Thống Kê", icon: <BarChart3 size={18} /> },
+    { to: "/admin", label: "Quản Trị AI", icon: <ShieldCheck size={18} /> },
   ];
 
   return (
