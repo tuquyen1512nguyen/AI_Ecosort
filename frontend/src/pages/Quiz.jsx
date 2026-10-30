@@ -347,6 +347,8 @@ export default function Quiz({ user }) {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
+              flexWrap: "wrap",
+              gap: "0.75rem",
               marginBottom: "1.5rem",
               paddingBottom: "1rem",
               borderBottom: "1px solid var(--border-color)",
@@ -356,7 +358,7 @@ export default function Quiz({ user }) {
               <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                 Câu hỏi {currentIndex + 1} / {questions.length}
               </span>
-              <div style={{ height: "6px", width: "160px", background: "rgba(255, 255, 255, 0.1)", borderRadius: "3px", overflow: "hidden", marginTop: "0.35rem" }}>
+              <div style={{ height: "6px", width: "160px", maxWidth: "100%", background: "rgba(255, 255, 255, 0.1)", borderRadius: "3px", overflow: "hidden", marginTop: "0.35rem" }}>
                 <div
                   style={{
                     height: "100%",
@@ -369,7 +371,7 @@ export default function Quiz({ user }) {
             </div>
 
             {/* Streak & Score */}
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
               {streak > 1 && (
                 <div
                   style={{
@@ -422,7 +424,7 @@ export default function Quiz({ user }) {
                 Nhóm rác: {currentQ.badge}
               </span>
             </div>
-            <h2 style={{ fontSize: "1.35rem", lineHeight: 1.5, fontWeight: 700 }}>
+            <h2 className="quiz-scenario-title" style={{ fontSize: "clamp(1.15rem, 3.5vw, 1.35rem)", lineHeight: 1.5, fontWeight: 700 }}>
               {currentQ.scenario}
             </h2>
           </div>
@@ -464,6 +466,7 @@ export default function Quiz({ user }) {
                 <button
                   key={idx}
                   type="button"
+                  className="quiz-option-btn"
                   onClick={() => handleSelectOption(idx)}
                   disabled={isAnswered}
                   style={btnStyle}

@@ -132,7 +132,7 @@ export default function Scan({ user }) {
           <span>YOLOv8 Nano Inference Engine</span>
         </div>
 
-        <h1 style={{ fontSize: "2.35rem", fontWeight: 800, marginBottom: "0.5rem" }}>
+        <h1 style={{ fontSize: "clamp(1.75rem, 5vw, 2.35rem)", fontWeight: 800, marginBottom: "0.5rem" }}>
           Nhận Diện & Phân Loại Rác
         </h1>
         <p style={{ color: "var(--text-muted)", fontSize: "0.98rem", maxWidth: "600px", margin: "0 auto" }}>
@@ -141,6 +141,7 @@ export default function Scan({ user }) {
 
         {/* Tab chuyển đổi chế độ */}
         <div
+          className="scan-mode-tabs"
           style={{
             display: "inline-flex",
             background: "rgba(30, 41, 59, 0.7)",
@@ -299,6 +300,7 @@ export default function Scan({ user }) {
 
               {/* Capture controls */}
               <div
+                className="camera-action-controls"
                 style={{
                   marginTop: "1.25rem",
                   display: "flex",
@@ -312,7 +314,7 @@ export default function Scan({ user }) {
                   onClick={handleCaptureWebcam}
                   className="btn-primary btn-pill"
                   style={{
-                    padding: "0.85rem 2.25rem",
+                    padding: "0.85rem clamp(1.25rem, 4vw, 2.25rem)",
                     fontSize: "1.05rem",
                     fontWeight: 700,
                   }}
@@ -344,10 +346,11 @@ export default function Scan({ user }) {
             onClick={handlePredict}
             className="btn-primary btn-pill"
             style={{
-              padding: "1rem 3rem",
-              fontSize: "1.15rem",
+              padding: "0.95rem clamp(1.5rem, 5vw, 3rem)",
+              fontSize: "clamp(1rem, 2.5vw, 1.15rem)",
               fontWeight: 800,
               boxShadow: "0 8px 30px var(--primary-glow)",
+              maxWidth: "100%",
             }}
           >
             <Zap size={22} />

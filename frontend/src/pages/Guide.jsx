@@ -271,7 +271,7 @@ export default function Guide() {
           <span>Bách Khoa Tra Cứu Toàn Diện</span>
         </div>
 
-        <h1 style={{ fontSize: "2.35rem", fontWeight: 800, marginBottom: "0.5rem" }}>
+        <h1 style={{ fontSize: "clamp(1.75rem, 5vw, 2.35rem)", fontWeight: 800, marginBottom: "0.5rem" }}>
           Cẩm Nang Phân Loại Rác Thông Minh
         </h1>
         <p style={{ color: "var(--text-muted)", maxWidth: "640px", margin: "0 auto", fontSize: "0.98rem" }}>
@@ -342,6 +342,7 @@ export default function Guide() {
 
         {/* Bộ Lọc Tab Phân Loại */}
         <div
+          className="guide-tabs-container"
           style={{
             display: "inline-flex",
             gap: "0.5rem",
@@ -439,7 +440,7 @@ export default function Guide() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))",
             gap: "1.25rem",
           }}
         >

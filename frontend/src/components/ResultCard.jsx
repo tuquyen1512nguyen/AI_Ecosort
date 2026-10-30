@@ -169,6 +169,7 @@ export default function ResultCard({ result, loading, onReset, user }) {
     >
       {/* Top Header */}
       <div
+        className="result-header"
         style={{
           display: "flex",
           justifyContent: "space-between",
@@ -200,7 +201,7 @@ export default function ResultCard({ result, loading, onReset, user }) {
           </div>
 
           {/* Tên vật thể tiếng Việt */}
-          <h2 style={{ fontSize: "1.65rem", fontWeight: 800, lineHeight: 1.25 }}>
+          <h2 style={{ fontSize: "clamp(1.35rem, 4vw, 1.65rem)", fontWeight: 800, lineHeight: 1.25 }}>
             {vietnameseName}
           </h2>
 
@@ -223,6 +224,7 @@ export default function ResultCard({ result, loading, onReset, user }) {
 
         {/* Confidence Gauge */}
         <div
+          className="result-confidence-box"
           style={{
             background: "rgba(15, 23, 42, 0.7)",
             border: "1px solid var(--border-color)",
@@ -335,6 +337,7 @@ export default function ResultCard({ result, loading, onReset, user }) {
 
       {/* Eco-Impact & Rewards Badge */}
       <div
+        className="result-impact-box-group"
         style={{
           display: "flex",
           gap: "1rem",
@@ -345,7 +348,7 @@ export default function ResultCard({ result, loading, onReset, user }) {
         <div
           style={{
             flex: 1,
-            minWidth: "180px",
+            minWidth: "160px",
             background: "rgba(16, 185, 129, 0.08)",
             border: "1px solid rgba(16, 185, 129, 0.2)",
             borderRadius: "8px",
@@ -367,7 +370,7 @@ export default function ResultCard({ result, loading, onReset, user }) {
         <div
           style={{
             flex: 1,
-            minWidth: "180px",
+            minWidth: "160px",
             background: "rgba(6, 182, 212, 0.08)",
             border: "1px solid rgba(6, 182, 212, 0.2)",
             borderRadius: "8px",
@@ -389,6 +392,7 @@ export default function ResultCard({ result, loading, onReset, user }) {
 
       {/* Actions Bar */}
       <div
+        className="result-actions-bar"
         style={{
           display: "flex",
           justifyContent: "space-between",
@@ -399,7 +403,7 @@ export default function ResultCard({ result, loading, onReset, user }) {
           flexWrap: "wrap",
         }}
       >
-        <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
+        <div className="result-actions-left" style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
           <button
             type="button"
             onClick={handleCopy}

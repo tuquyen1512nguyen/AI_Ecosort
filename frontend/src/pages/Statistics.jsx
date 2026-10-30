@@ -211,7 +211,7 @@ export default function Statistics({ user }) {
 
       {/* Eco-Rank Hero Banner */}
       <div
-        className="glass-card"
+        className="glass-card stats-hero-banner"
         style={{
           background: "linear-gradient(135deg, rgba(22, 30, 49, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%)",
           border: `1px solid ${rank.badgeColor}40`,
@@ -223,6 +223,7 @@ export default function Statistics({ user }) {
         }}
       >
         <div
+          className="stats-hero-top"
           style={{
             display: "flex",
             justifyContent: "space-between",
@@ -231,7 +232,7 @@ export default function Statistics({ user }) {
             gap: "1.5rem",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", flexWrap: "wrap" }}>
             <div
               style={{
                 fontSize: "3.2rem",
@@ -243,6 +244,7 @@ export default function Statistics({ user }) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                flexShrink: 0,
               }}
             >
               {rank.icon}
@@ -252,7 +254,7 @@ export default function Statistics({ user }) {
               <div style={{ fontSize: "0.82rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                 Danh Hiệu Sống Xanh
               </div>
-              <h2 style={{ fontSize: "1.75rem", fontWeight: 800, color: rank.badgeColor, margin: "0.2rem 0" }}>
+              <h2 style={{ fontSize: "clamp(1.35rem, 3.5vw, 1.75rem)", fontWeight: 800, color: rank.badgeColor, margin: "0.2rem 0" }}>
                 {rank.title}
               </h2>
               <p style={{ color: "var(--text-muted)", fontSize: "0.88rem", maxWidth: "450px" }}>
@@ -263,6 +265,7 @@ export default function Statistics({ user }) {
 
           {/* Points Counter */}
           <div
+            className="stats-points-box"
             style={{
               textAlign: "right",
               background: "rgba(15, 23, 42, 0.6)",
@@ -349,63 +352,56 @@ export default function Statistics({ user }) {
       </div>
 
       {/* KPI Cards Grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: "1.25rem",
-          marginBottom: "2rem",
-        }}
-      >
-        <div className="glass-card">
+      <div className="kpi-stats-grid">
+        <div className="glass-card kpi-card">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ color: "var(--text-muted)", fontSize: "0.88rem" }}>Tổng Lượt Quét</span>
-            <span style={{ color: "var(--accent-blue)" }}><TrendingUp size={20} /></span>
+            <span style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Lượt Quét</span>
+            <span style={{ color: "var(--accent-blue)" }}><TrendingUp size={18} /></span>
           </div>
-          <div style={{ fontSize: "2.25rem", fontWeight: 800, marginTop: "0.5rem" }}>
+          <div className="kpi-val" style={{ fontSize: "2.15rem", fontWeight: 800, marginTop: "0.5rem" }}>
             {stats.total}
           </div>
-          <div style={{ fontSize: "0.8rem", color: "var(--text-dim)", marginTop: "0.25rem" }}>
-            Vật thể đã được xử lý
+          <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", marginTop: "0.25rem" }}>
+            Vật thể đã xử lý
           </div>
         </div>
 
-        <div className="glass-card">
+        <div className="glass-card kpi-card">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ color: "var(--text-muted)", fontSize: "0.88rem" }}>Tỷ Lệ Tái Chế</span>
-            <span style={{ color: "var(--recyclable)" }}><Recycle size={20} /></span>
+            <span style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Tái Chế</span>
+            <span style={{ color: "var(--recyclable)" }}><Recycle size={18} /></span>
           </div>
-          <div style={{ fontSize: "2.25rem", fontWeight: 800, marginTop: "0.5rem", color: "var(--recyclable)" }}>
+          <div className="kpi-val" style={{ fontSize: "2.15rem", fontWeight: 800, marginTop: "0.5rem", color: "var(--recyclable)" }}>
             {recyclePercent}%
           </div>
-          <div style={{ fontSize: "0.8rem", color: "var(--text-dim)", marginTop: "0.25rem" }}>
-            {stats.recyclable} / {stats.total} món tái chế
+          <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", marginTop: "0.25rem" }}>
+            {stats.recyclable}/{stats.total} món tái chế
           </div>
         </div>
 
-        <div className="glass-card">
+        <div className="glass-card kpi-card">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ color: "var(--text-muted)", fontSize: "0.88rem" }}>CO2 Giảm Phát Thải</span>
-            <span style={{ color: "var(--accent-amber)" }}><TreePine size={20} /></span>
+            <span style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Giảm CO2</span>
+            <span style={{ color: "var(--accent-amber)" }}><TreePine size={18} /></span>
           </div>
-          <div style={{ fontSize: "2.25rem", fontWeight: 800, marginTop: "0.5rem", color: "#f59e0b" }}>
-            {stats.co2Saved} <span style={{ fontSize: "1.1rem" }}>kg</span>
+          <div className="kpi-val" style={{ fontSize: "2.15rem", fontWeight: 800, marginTop: "0.5rem", color: "#f59e0b" }}>
+            {stats.co2Saved} <span style={{ fontSize: "1rem", fontWeight: 500 }}>kg</span>
           </div>
-          <div style={{ fontSize: "0.8rem", color: "var(--text-dim)", marginTop: "0.25rem" }}>
+          <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", marginTop: "0.25rem" }}>
             Ước tính theo LCA
           </div>
         </div>
 
-        <div className="glass-card">
+        <div className="glass-card kpi-card">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ color: "var(--text-muted)", fontSize: "0.88rem" }}>Rác Độc Hại Cách Ly</span>
-            <span style={{ color: "var(--hazardous)" }}><AlertTriangle size={20} /></span>
+            <span style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Nguy Hại</span>
+            <span style={{ color: "var(--hazardous)" }}><AlertTriangle size={18} /></span>
           </div>
-          <div style={{ fontSize: "2.25rem", fontWeight: 800, marginTop: "0.5rem", color: "var(--hazardous)" }}>
+          <div className="kpi-val" style={{ fontSize: "2.15rem", fontWeight: 800, marginTop: "0.5rem", color: "var(--hazardous)" }}>
             {stats.hazardous}
           </div>
-          <div style={{ fontSize: "0.8rem", color: "var(--text-dim)", marginTop: "0.25rem" }}>
-            Không thải ra đất và nước
+          <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", marginTop: "0.25rem" }}>
+            Cách ly an toàn
           </div>
         </div>
       </div>
@@ -414,7 +410,7 @@ export default function Statistics({ user }) {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
           gap: "1.5rem",
         }}
       >

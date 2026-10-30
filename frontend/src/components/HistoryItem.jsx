@@ -75,7 +75,7 @@ export default function HistoryItem({ item, user }) {
 
   return (
     <div
-      className="glass-card card-interactive"
+      className="glass-card card-interactive history-item-card"
       style={{
         display: "flex",
         justifyContent: "space-between",
@@ -117,7 +117,7 @@ export default function HistoryItem({ item, user }) {
         </p>
       </div>
 
-      <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.25rem" }}>
+      <div className="history-item-right" style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.25rem" }}>
         <div
           style={{
             fontSize: "0.85rem",

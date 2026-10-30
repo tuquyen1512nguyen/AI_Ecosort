@@ -555,8 +555,11 @@ export default function Profile({ user }) {
       {/* =========================================================================
           HERO PROFILE CARD: Thông tin cá nhân & Thẻ định danh công dân xanh
           ========================================================================= */}
+      {/* =========================================================================
+          HERO PROFILE CARD: Thông tin cá nhân & Thẻ định danh công dân xanh
+          ========================================================================= */}
       <div
-        className="glass-card"
+        className="glass-card profile-hero-card"
         style={{
           position: "relative",
           padding: "2.25rem 2rem",
@@ -568,6 +571,7 @@ export default function Profile({ user }) {
         }}
       >
         <div
+          className="profile-hero-top"
           style={{
             display: "flex",
             alignItems: "center",
@@ -577,9 +581,9 @@ export default function Profile({ user }) {
           }}
         >
           {/* Avatar & Tên & Email */}
-          <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
+          <div className="profile-hero-user-info" style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
             {/* Vùng Avatar */}
-            <div style={{ position: "relative" }}>
+            <div style={{ position: "relative", flexShrink: 0 }}>
               <div
                 style={{
                   width: "92px",
@@ -631,9 +635,9 @@ export default function Profile({ user }) {
             </div>
 
             {/* Chi tiết người dùng */}
-            <div>
+            <div style={{ flex: 1, minWidth: "220px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap", marginBottom: "0.35rem" }}>
-                <h1 style={{ fontSize: "1.85rem", fontWeight: 800, color: "#ffffff", margin: 0 }}>
+                <h1 style={{ fontSize: "clamp(1.4rem, 4vw, 1.85rem)", fontWeight: 800, color: "#ffffff", margin: 0 }}>
                   {displayName || "Công Dân Xanh"}
                 </h1>
                 <span
@@ -651,10 +655,10 @@ export default function Profile({ user }) {
                 </span>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap", fontSize: "0.85rem", color: "var(--text-muted)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.85rem", flexWrap: "wrap", fontSize: "0.85rem", color: "var(--text-muted)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
                   <Mail size={15} style={{ color: "var(--primary)" }} />
-                  <span>{user ? user.email : "demo@ecosort.vn"}</span>
+                  <span style={{ wordBreak: "break-all" }}>{user ? user.email : "demo@ecosort.vn"}</span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
                   <MapPin size={15} style={{ color: "var(--accent-cyan)" }} />
@@ -673,7 +677,7 @@ export default function Profile({ user }) {
           </div>
 
           {/* Quick Actions */}
-          <div style={{ display: "flex", gap: "0.65rem", flexWrap: "wrap" }}>
+          <div className="profile-hero-actions" style={{ display: "flex", gap: "0.65rem", flexWrap: "wrap" }}>
             <button
               onClick={handleExportData}
               title="Xuất hồ sơ JSON"
@@ -716,13 +720,13 @@ export default function Profile({ user }) {
             borderTop: "1px solid rgba(255, 255, 255, 0.08)",
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.45rem", fontSize: "0.84rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.4rem", marginBottom: "0.45rem", fontSize: "0.84rem" }}>
             <span style={{ color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "0.35rem" }}>
               <Sparkles size={14} style={{ color: "var(--primary)" }} />
-              Tiến trình thăng hạng: <strong>{rankInfo.title}</strong>
+              Tiến trình: <strong>{rankInfo.title}</strong>
             </span>
             <span style={{ color: "var(--text-main)", fontWeight: 700 }}>
-              {stats.ecoPoints} / {rankInfo.nextTier} điểm Eco-Points ({rankInfo.progress}%)
+              {stats.ecoPoints} / {rankInfo.nextTier} điểm ({rankInfo.progress}%)
             </span>
           </div>
           <div
@@ -750,71 +754,64 @@ export default function Profile({ user }) {
       {/* =========================================================================
           THẺ THỐNG KÊ NHANH CÁ NHÂN (4 METRIC BOXES)
           ========================================================================= */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
-          gap: "1.25rem",
-          marginBottom: "2rem",
-        }}
-      >
-        <div className="card" style={{ padding: "1.25rem" }}>
+      <div className="profile-stats-grid">
+        <div className="card profile-stat-card">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Điểm Eco-Points</span>
+            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Eco-Points</span>
             <div style={{ padding: "0.4rem", borderRadius: "8px", background: "rgba(16, 185, 129, 0.15)", color: "var(--primary)" }}>
               <Award size={18} />
             </div>
           </div>
-          <div style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--primary-light)" }}>
+          <div className="profile-stat-val" style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--primary-light)" }}>
             {stats.ecoPoints}
           </div>
           <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", marginTop: "0.2rem" }}>
-            Tích lũy từ phân loại & trắc nghiệm
+            Điểm tích lũy sống xanh
           </div>
         </div>
 
-        <div className="card" style={{ padding: "1.25rem" }}>
+        <div className="card profile-stat-card">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
             <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Lượt Quét AI</span>
             <div style={{ padding: "0.4rem", borderRadius: "8px", background: "rgba(6, 182, 212, 0.15)", color: "var(--accent-cyan)" }}>
               <Camera size={18} />
             </div>
           </div>
-          <div style={{ fontSize: "1.75rem", fontWeight: 800, color: "#38bdf8" }}>
+          <div className="profile-stat-val" style={{ fontSize: "1.75rem", fontWeight: 800, color: "#38bdf8" }}>
             {stats.scanCount}
           </div>
           <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", marginTop: "0.2rem" }}>
-            Vật thể rác đã được nhận diện
+            Vật thể đã nhận diện
           </div>
         </div>
 
-        <div className="card" style={{ padding: "1.25rem" }}>
+        <div className="card profile-stat-card">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Giảm Phát Thải CO2</span>
+            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Giảm CO2</span>
             <div style={{ padding: "0.4rem", borderRadius: "8px", background: "rgba(245, 158, 11, 0.15)", color: "var(--accent-amber)" }}>
               <TrendingUp size={18} />
             </div>
           </div>
-          <div style={{ fontSize: "1.75rem", fontWeight: 800, color: "#fbbf24" }}>
-            {stats.co2Saved} <span style={{ fontSize: "1rem", fontWeight: 500 }}>kg</span>
+          <div className="profile-stat-val" style={{ fontSize: "1.75rem", fontWeight: 800, color: "#fbbf24" }}>
+            {stats.co2Saved} <span style={{ fontSize: "0.95rem", fontWeight: 500 }}>kg</span>
           </div>
           <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", marginTop: "0.2rem" }}>
-            Tương đương hấp thụ 1 cây xanh
+            Giảm phát thải môi trường
           </div>
         </div>
 
-        <div className="card" style={{ padding: "1.25rem" }}>
+        <div className="card profile-stat-card">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Chuỗi Ngày Sống Xanh</span>
+            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Chuỗi Xanh</span>
             <div style={{ padding: "0.4rem", borderRadius: "8px", background: "rgba(239, 68, 68, 0.15)", color: "#f87171" }}>
               <Flame size={18} />
             </div>
           </div>
-          <div style={{ fontSize: "1.75rem", fontWeight: 800, color: "#f87171" }}>
-            {stats.streakDays} <span style={{ fontSize: "1rem", fontWeight: 500 }}>ngày</span>
+          <div className="profile-stat-val" style={{ fontSize: "1.75rem", fontWeight: 800, color: "#f87171" }}>
+            {stats.streakDays} <span style={{ fontSize: "0.95rem", fontWeight: 500 }}>ngày</span>
           </div>
           <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", marginTop: "0.2rem" }}>
-            Duy trì liên tục thói quen xanh
+            Duy trì thói quen liên tục
           </div>
         </div>
       </div>
@@ -822,18 +819,10 @@ export default function Profile({ user }) {
       {/* =========================================================================
           THANH ĐIỀU HƯỚNG TAB CHỨC NĂNG
           ========================================================================= */}
-      <div
-        style={{
-          display: "flex",
-          gap: "0.75rem",
-          borderBottom: "1px solid var(--border-color)",
-          paddingBottom: "0.75rem",
-          marginBottom: "1.75rem",
-          overflowX: "auto",
-        }}
-      >
+      <div className="profile-tabs-bar">
         <button
           onClick={() => setActiveTab("info")}
+          className="profile-tab-btn"
           style={{
             padding: "0.6rem 1.25rem",
             borderRadius: "8px",
@@ -850,6 +839,7 @@ export default function Profile({ user }) {
 
         <button
           onClick={() => setActiveTab("badges")}
+          className="profile-tab-btn"
           style={{
             padding: "0.6rem 1.25rem",
             borderRadius: "8px",
@@ -866,6 +856,7 @@ export default function Profile({ user }) {
 
         <button
           onClick={() => setActiveTab("security")}
+          className="profile-tab-btn"
           style={{
             padding: "0.6rem 1.25rem",
             borderRadius: "8px",
@@ -957,9 +948,10 @@ export default function Profile({ user }) {
           </div>
 
           <div
+            className="profile-form-grid"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 250px), 1fr))",
               gap: "1.25rem",
               marginBottom: "1.5rem",
             }}
@@ -1209,7 +1201,7 @@ export default function Profile({ user }) {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(290px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
                 gap: "1.25rem",
               }}
             >
@@ -1328,7 +1320,7 @@ export default function Profile({ user }) {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 240px), 1fr))",
                 gap: "1.25rem",
                 marginBottom: "1.25rem",
               }}

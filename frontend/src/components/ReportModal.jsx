@@ -181,7 +181,7 @@ export default function ReportModal({ isOpen, onClose, prediction, user, onSucce
       }}
     >
       <div
-        className="glass-card animate-fade-in"
+        className="glass-card animate-fade-in report-modal-dialog"
         style={{
           width: "100%",
           maxWidth: "560px",
@@ -546,7 +546,7 @@ export default function ReportModal({ isOpen, onClose, prediction, user, onSucce
             </div>
 
             {/* Nút Submit & Cancel */}
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem" }}>
+            <div className="report-modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem" }}>
               <button
                 type="button"
                 className="btn-secondary"

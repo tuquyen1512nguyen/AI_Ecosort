@@ -51,10 +51,26 @@
 }
 
 /* Base Reset */
-* {
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+html, body, #root {
+  max-width: 100%;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+img, svg, video, canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+input, select, textarea, button {
+  max-width: 100%;
+  font-family: inherit;
 }
 
 body {
@@ -597,4 +613,358 @@ button:active {
   border-color: var(--primary) !important;
   box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
   transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   Comprehensive Multi-Screen Responsive System (Mobile, Tablet, Desktop)
+   ========================================================================== */
+
+/* 1. Navbar Responsive Adaptations */
+@media (max-width: 1040px) {
+  .desktop-nav-container,
+  .desktop-auth-container {
+    display: none !important;
+  }
+  .mobile-toggle-btn {
+    display: flex !important;
+  }
+}
+
+@media (min-width: 1041px) {
+  .desktop-nav-container {
+    display: flex !important;
+  }
+  .desktop-auth-container {
+    display: flex !important;
+  }
+  .mobile-toggle-btn {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1041px) and (max-width: 1220px) {
+  .desktop-nav-link {
+    padding: 0.45rem 0.65rem !important;
+    font-size: 0.85rem !important;
+    gap: 0.35rem !important;
+  }
+  .navbar-profile-pill {
+    padding: 0.35rem 0.65rem !important;
+  }
+  .navbar-profile-pill span:first-of-type {
+    max-width: 90px !important;
+  }
+}
+
+.mobile-nav-drawer {
+  max-height: calc(100vh - 72px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 380px) {
+  .brand-subtitle {
+    display: none !important;
+  }
+}
+
+/* 2. Profile Page Responsive Layouts */
+.profile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.profile-stat-card {
+  padding: 1.25rem;
+  transition: all 0.25s ease;
+}
+
+.profile-tabs-bar {
+  display: flex;
+  gap: 0.65rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.75rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.profile-tabs-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.profile-tab-btn {
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+@media (max-width: 900px) {
+  .profile-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .profile-hero-card {
+    padding: 1.35rem 1rem !important;
+  }
+
+  .profile-hero-top {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 1.25rem !important;
+  }
+
+  .profile-hero-user-info {
+    width: 100% !important;
+  }
+
+  .profile-hero-actions {
+    width: 100% !important;
+    display: flex !important;
+    gap: 0.5rem !important;
+  }
+
+  .profile-hero-actions button {
+    flex: 1 !important;
+    justify-content: center !important;
+    padding: 0.65rem 0.75rem !important;
+    font-size: 0.85rem !important;
+  }
+
+  .profile-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .profile-stat-card {
+    padding: 0.95rem 0.75rem !important;
+  }
+
+  .profile-stat-val {
+    font-size: 1.45rem !important;
+  }
+
+  .profile-form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .profile-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* 3. Statistics Page Responsive KPI & Charts */
+.kpi-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 900px) {
+  .kpi-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem;
+  }
+}
+
+@media (max-width: 540px) {
+  .kpi-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+  }
+
+  .kpi-card {
+    padding: 1rem 0.75rem !important;
+  }
+
+  .kpi-val {
+    font-size: 1.55rem !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .stats-hero-banner {
+    padding: 1.35rem 1rem !important;
+  }
+
+  .stats-hero-top {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 1rem !important;
+  }
+
+  .stats-points-box {
+    width: 100% !important;
+    text-align: left !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 0.85rem 1.15rem !important;
+  }
+}
+
+/* 4. Scanner, Webcam & UploadCard Adaptations */
+@media (max-width: 520px) {
+  .scan-mode-tabs {
+    width: 100% !important;
+    display: flex !important;
+  }
+
+  .scan-mode-tabs button {
+    flex: 1 !important;
+    justify-content: center !important;
+    padding: 0.6rem 0.4rem !important;
+    font-size: 0.85rem !important;
+  }
+
+  .camera-action-controls {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 0.5rem !important;
+  }
+
+  .camera-action-controls button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+.sample-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr));
+  gap: 0.6rem;
+}
+
+@media (max-width: 560px) {
+  .sample-cards-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* 5. ResultCard Responsive Adaptations */
+@media (max-width: 540px) {
+  .result-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 1rem !important;
+  }
+
+  .result-confidence-box {
+    width: 100% !important;
+    text-align: left !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0.65rem 1rem !important;
+  }
+
+  .result-impact-box-group {
+    flex-direction: column !important;
+  }
+
+  .result-actions-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+
+  .result-actions-left {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+
+  .result-actions-left button,
+  .result-actions-left a,
+  .result-actions-left a button,
+  .result-actions-bar > button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+/* 6. ReportModal Responsive Dialog */
+@media (max-width: 540px) {
+  .report-modal-dialog {
+    padding: 1.25rem 1rem !important;
+    max-height: 92vh !important;
+    border-radius: var(--radius-lg) !important;
+    margin: 0.5rem !important;
+  }
+
+  .report-modal-footer {
+    flex-direction: column-reverse !important;
+    width: 100% !important;
+  }
+
+  .report-modal-footer button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+/* 7. History Filter & Search Bar */
+@media (max-width: 580px) {
+  .history-filter-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .history-search-input {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .history-item-card {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  .history-item-right {
+    width: 100% !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    border-top: 1px solid var(--border-color) !important;
+    padding-top: 0.5rem !important;
+    margin-top: 0.5rem !important;
+  }
+}
+
+/* 8. Guide Page Search & Filters */
+@media (max-width: 520px) {
+  .guide-tabs-container {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+
+  .guide-tabs-container button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+/* 9. Quiz Options & Mobile Layout */
+@media (max-width: 480px) {
+  .quiz-option-btn {
+    padding: 0.85rem 0.95rem !important;
+    font-size: 0.88rem !important;
+  }
+
+  .quiz-scenario-title {
+    font-size: 1.15rem !important;
+  }
 }

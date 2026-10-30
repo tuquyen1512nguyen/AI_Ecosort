@@ -116,7 +116,7 @@ export default function Navbar({ user }) {
                 AI
               </span>
             </div>
-            <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", marginTop: "-2px" }}>
+            <div className="brand-subtitle" style={{ fontSize: "0.68rem", color: "var(--text-muted)", marginTop: "-2px" }}>
               Phân Loại Rác Thông Minh
             </div>
           </div>
@@ -131,18 +131,11 @@ export default function Navbar({ user }) {
           }}
           className="desktop-nav-container"
         >
-          <style>{`
-            @media (min-width: 992px) {
-              .desktop-nav-container { display: flex !important; }
-              .desktop-auth-container { display: flex !important; }
-              .mobile-toggle-btn { display: none !important; }
-            }
-          `}</style>
-
           {navLinks.map((link) => (
             <NavLink
               key={link.to}
               to={link.to}
+              className="desktop-nav-link"
               style={({ isActive }) => ({
                 display: "inline-flex",
                 alignItems: "center",
@@ -298,6 +291,7 @@ export default function Navbar({ user }) {
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div
+          className="mobile-nav-drawer"
           style={{
             background: "rgba(15, 23, 42, 0.98)",
             borderBottom: "1px solid var(--border-color)",

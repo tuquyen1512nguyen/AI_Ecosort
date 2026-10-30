@@ -65,9 +65,8 @@ export default function Register() {
   return (
     <div className="page-wrapper container animate-fade-in" style={{ maxWidth: "480px" }}>
       <div
-        className="glass-card"
+        className="glass-card auth-card"
         style={{
-          padding: "2.75rem 2.25rem",
           borderRadius: "var(--radius-xl)",
           position: "relative",
           overflow: "hidden",
@@ -91,7 +90,7 @@ export default function Register() {
             <Leaf size={28} />
           </div>
 
-          <h2 style={{ fontSize: "1.85rem", fontWeight: 800, marginBottom: "0.35rem" }}>
+          <h2 style={{ fontSize: "clamp(1.45rem, 4.5vw, 1.85rem)", fontWeight: 800, marginBottom: "0.35rem" }}>
             Tạo Tài Khoản Mới
           </h2>
           <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>

@@ -130,7 +130,7 @@ export default function History({ user }) {
             <HistoryIcon size={15} />
             <span>Nhật Ký Cá Nhân</span>
           </div>
-          <h1 style={{ fontSize: "2.15rem", fontWeight: 800 }}>Lịch Sử Phân Loại</h1>
+          <h1 style={{ fontSize: "clamp(1.65rem, 4.5vw, 2.15rem)", fontWeight: 800 }}>Lịch Sử Phân Loại</h1>
           <p style={{ color: "var(--text-muted)", fontSize: "0.92rem" }}>
             Toàn bộ các vật thể bạn đã đồng hành phân loại cùng EcoSort AI
           </p>
@@ -153,6 +153,7 @@ export default function History({ user }) {
 
       {/* Filter and Search Bar */}
       <div
+        className="history-filter-bar"
         style={{
           display: "flex",
           justifyContent: "space-between",
@@ -223,7 +224,7 @@ export default function History({ user }) {
         </div>
 
         {/* Mini Search input */}
-        <div style={{ position: "relative", minWidth: "220px", flex: 1, maxWidth: "300px" }}>
+        <div className="history-search-input" style={{ position: "relative", minWidth: "220px", flex: 1, maxWidth: "300px" }}>
           <Search size={15} style={{ position: "absolute", left: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
           <input
             type="text"
