@@ -1,10 +1,15 @@
+/**
+ * ReportModal Component
+ * Allows users to report AI misclassifications or suggest correct waste categories.
+ * Feedback is stored in the Cloud Firestore "reports" collection to assist in retraining YOLOv8.
+ */
+
 import { useState } from "react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import {
   AlertTriangle,
   X,
   Send,
-  Sparkles,
   CheckCircle2,
   Recycle,
   Trash2,
@@ -14,6 +19,9 @@ import {
 
 import { db } from "../firebase";
 
+/**
+ * Danh mục các loại rác thường gặp gợi ý cho người dùng khi báo cáo.
+ */
 const WASTE_OPTIONS = [
   { id: "Chai nhựa PET", name: "Chai nhựa PET / Thân chai nước", category: "RECYCLABLE" },
   { id: "Lon nhôm kim loại", name: "Lon nhôm / Lon nước ngọt kim loại", category: "RECYCLABLE" },
@@ -27,6 +35,14 @@ const WASTE_OPTIONS = [
   { id: "Chai lọ hóa chất", name: "Bình xịt / Chai lọ đựng hóa chất độc", category: "HAZARDOUS" },
 ];
 
+/**
+ * @param {Object} props
+ * @param {boolean} props.isOpen - Trạng thái hiển thị modal
+ * @param {Function} props.onClose - Hàm đóng modal
+ * @param {Object} [props.currentResult] - Kết quả dự đoán AI gần nhất { class, type, confidence }
+ * @param {string} [props.imagePreview] - URL ảnh vừa quét
+ * @param {Object} [props.user] - Thông tin người dùng đăng nhập hiện tại
+ */
 export default function ReportModal({ isOpen, onClose, currentResult, imagePreview, user }) {
   const [reason, setReason] = useState("wrong_item");
   const [correctClass, setCorrectClass] = useState("");
@@ -42,6 +58,7 @@ export default function ReportModal({ isOpen, onClose, currentResult, imagePrevi
     setSubmitting(true);
 
     try {
+      // Ghi nhận phản hồi vào Firestore collection 'reports'
       await addDoc(collection(db, "reports"), {
         uid: user?.uid || "guest",
         email: user?.email || "guest",
@@ -81,7 +98,7 @@ export default function ReportModal({ isOpen, onClose, currentResult, imagePrevi
             <AlertTriangle size={20} color="#f59e0b" />
             <h4>Báo Cáo Nhận Diện AI Chưa Đúng</h4>
           </div>
-          <button className="btn-close-modal" onClick={onClose}>
+          <button type="button" className="btn-close-modal" onClick={onClose}>
             <X size={18} />
           </button>
         </div>

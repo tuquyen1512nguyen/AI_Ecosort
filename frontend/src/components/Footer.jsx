@@ -1,7 +1,15 @@
+/**
+ * Footer Component
+ * Global footer section displaying branding, navigation shortcuts, waste category links,
+ * technology stack badges, and sustainable development goal (SDG) credits.
+ */
+
 import { Link } from "react-router-dom";
-import { Recycle, Leaf, Shield, Heart, Sparkles, ExternalLink } from "lucide-react";
+import { Recycle } from "lucide-react";
 
 export default function Footer() {
+  const currentYear = new Date().getFullYear();
+
   return (
     <footer className="site-footer">
       <div className="footer-container">
@@ -57,7 +65,7 @@ export default function Footer() {
       </div>
 
       <div className="footer-bottom">
-        <p>© 2026 EcoSort AI. All rights reserved. Phát triển vì mục tiêu phát triển bền vững (SDG 12 & 13).</p>
+        <p>© {currentYear} EcoSort AI. All rights reserved. Phát triển vì mục tiêu phát triển bền vững (SDG 12 & 13).</p>
         <div className="footer-bottom-links">
           <span>Bảo mật dữ liệu</span>
           <span>•</span>

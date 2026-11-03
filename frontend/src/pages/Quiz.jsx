@@ -1,7 +1,12 @@
+/**
+ * Quiz Page Component
+ * Interactive educational waste classification mini-game with instant feedback,
+ * ecological explanations, and gamified eco-points calculation.
+ */
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  HelpCircle,
   CheckCircle2,
   XCircle,
   RotateCcw,
@@ -10,10 +15,18 @@ import {
   Trophy,
   ArrowRight,
   BookOpen,
-  Camera,
-  ShieldCheck
+  Camera
 } from "lucide-react";
 
+/**
+ * Danh sách câu hỏi trắc nghiệm môi trường chuẩn mực của EcoSort AI.
+ * @type {Array<{
+ *   id: number,
+ *   question: string,
+ *   options: Array<{ text: string, isCorrect: boolean }>,
+ *   explanation: string
+ * }>}
+ */
 const ALL_QUESTIONS = [
   {
     id: 1,
@@ -72,8 +85,12 @@ const ALL_QUESTIONS = [
   },
 ];
 
+/**
+ * @param {Object} props
+ * @param {Object} [props.user] - Thông tin người dùng đăng nhập hiện tại
+ */
 export default function Quiz({ user }) {
-  const [questions, setQuestions] = useState(ALL_QUESTIONS);
+  const [questions] = useState(ALL_QUESTIONS);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -82,6 +99,7 @@ export default function Quiz({ user }) {
 
   const currentQ = questions[currentIndex];
 
+  // Xử lý khi người dùng chọn đáp án (chặn chọn lại khi đã trả lời)
   const handleSelectOption = (index) => {
     if (isAnswered) return;
     setSelectedOption(index);
@@ -92,6 +110,7 @@ export default function Quiz({ user }) {
     }
   };
 
+  // Chuyển sang câu hỏi kế tiếp hoặc kết thúc bài trắc nghiệm
   const handleNextQuestion = () => {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex((prev) => prev + 1);
@@ -102,6 +121,7 @@ export default function Quiz({ user }) {
     }
   };
 
+  // Làm lại bài trắc nghiệm từ đầu
   const restartQuiz = () => {
     setCurrentIndex(0);
     setSelectedOption(null);
@@ -110,6 +130,7 @@ export default function Quiz({ user }) {
     setQuizFinished(false);
   };
 
+  // Mỗi câu trả lời đúng được cộng 10 điểm Eco-points
   const pointsAwarded = score * 10;
 
   return (
