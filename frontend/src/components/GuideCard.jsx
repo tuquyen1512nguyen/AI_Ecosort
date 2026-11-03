@@ -1,4 +1,12 @@
-import { CheckCircle2, XCircle, Recycle, Trash2, Biohazard } from "lucide-react";
+/**
+ * @file GuideCard.jsx
+ * @description Thẻ hiển thị thông tin chi tiết một loại rác trong cẩm nang.
+ * Bao gồm tên rác, biểu tượng, mã màu thùng chứa, hướng dẫn xử lý và danh sách được phép / bị cấm.
+ * 
+ * @param {Object} props
+ * @param {Object} props.item Thông tin loại rác từ cơ sở dữ liệu
+ */
+import { CheckCircle2, XCircle } from "lucide-react";
 
 export default function GuideCard({ item }) {
   if (!item) return null;

@@ -1,3 +1,14 @@
+/**
+ * @file UploadCard.jsx
+ * @description Vùng kéo thả hoặc duyệt tệp ảnh tải lên để phân tích AI.
+ * Hỗ trợ trạng thái kéo thả tương tác (drag & drop), hiển thị ảnh preview và hiệu ứng quét laser AI.
+ * 
+ * @param {Object} props
+ * @param {string|null} props.preview URL ảnh xem trước
+ * @param {boolean} props.loading Trạng thái AI đang phân tích
+ * @param {boolean} props.dragActive Trạng thái người dùng đang kéo tệp qua vùng thả
+ * @param {Function} props.onReset Hàm hủy chọn ảnh hiện tại
+ */
 import { UploadCloud, RotateCcw, Sparkles } from "lucide-react";
 
 export default function UploadCard({
