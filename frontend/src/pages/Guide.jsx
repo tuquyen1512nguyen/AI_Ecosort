@@ -1,3 +1,8 @@
+/**
+ * @file Guide.jsx
+ * @description Cẩm nang phân loại rác chi tiết của hệ thống EcoSort AI.
+ * Bao gồm cơ sở dữ liệu tra cứu quy chuẩn 3 nhóm rác, nguyên tắc xử lý và câu hỏi thường gặp (FAQ).
+ */
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -11,9 +16,7 @@ import {
   XCircle,
   Sparkles,
   HelpCircle,
-  Lightbulb,
-  ArrowRight,
-  ShieldCheck
+  ArrowRight
 } from "lucide-react";
 
 const WASTE_DATABASE = [
@@ -349,6 +352,7 @@ export default function Guide() {
                   className="faq-header-btn"
                   onClick={() => toggleFaq(faq.id)}
                   aria-expanded={isOpen}
+                  aria-controls={`faq-body-${faq.id}`}
                 >
                   <div className="faq-title-left">
                     <HelpCircle size={20} className="faq-title-icon" />
@@ -358,7 +362,7 @@ export default function Guide() {
                 </button>
 
                 {isOpen && (
-                  <div className="faq-body-content">
+                  <div id={`faq-body-${faq.id}`} className="faq-body-content" role="region">
                     <p>{faq.answer}</p>
                   </div>
                 )}
