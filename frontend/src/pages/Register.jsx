@@ -1,3 +1,9 @@
+/**
+ * @file Register.jsx
+ * @description Trang đăng ký tài khoản thành viên mới cho hệ sinh thái EcoSort AI.
+ * Khởi tạo tài khoản trên Firebase Authentication và thiết lập hồ sơ người dùng trong Firestore
+ * với vai trò mặc định (role: 'user') và số điểm xanh khởi đầu.
+ */
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
@@ -12,8 +18,7 @@ import {
   ArrowRight,
   Sparkles,
   AlertCircle,
-  CheckCircle2,
-  Leaf
+  CheckCircle2
 } from "lucide-react";
 
 import { auth, db } from "../firebase";

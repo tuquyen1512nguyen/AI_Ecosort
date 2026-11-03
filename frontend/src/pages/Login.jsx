@@ -1,3 +1,12 @@
+/**
+ * @file Login.jsx
+ * @description Trang đăng nhập tài khoản người dùng EcoSort AI qua Firebase Authentication.
+ * Hỗ trợ hiển thị/ẩn mật khẩu, đồng bộ hồ sơ vai trò (Role: user/admin) từ Firestore
+ * và lưu trữ phiên đăng nhập vào LocalStorage.
+ * 
+ * @param {Object} props
+ * @param {Function} props.setUser Hàm cập nhật state thông tin người dùng
+ */
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
@@ -10,9 +19,7 @@ import {
   EyeOff,
   ArrowRight,
   Sparkles,
-  AlertCircle,
-  ShieldCheck,
-  CheckCircle2
+  AlertCircle
 } from "lucide-react";
 
 import { auth, db } from "../firebase";
