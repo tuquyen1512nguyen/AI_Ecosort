@@ -1,3 +1,13 @@
+/**
+ * @file Navbar.jsx
+ * @description Thanh điều hướng chính (Header Navigation) của ứng dụng EcoSort AI.
+ * Hỗ trợ điều hướng đa trang (Home, Scan, Guide, Quiz, History, Admin Statistics),
+ * quản lý phiên đăng nhập/đăng xuất và responsive navigation drawer trên thiết bị di động.
+ * 
+ * @param {Object} props
+ * @param {Object|null} props.user Thông tin người dùng hiện tại
+ * @param {Function} props.setUser Hàm cập nhật state người dùng
+ */
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
@@ -162,6 +172,7 @@ export default function Navbar({ user, setUser }) {
           className="mobile-menu-toggle"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Mở thanh điều hướng"
+          aria-expanded={mobileMenuOpen}
         >
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
