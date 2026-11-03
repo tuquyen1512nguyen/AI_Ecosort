@@ -1,3 +1,9 @@
+/**
+ * @file Home.jsx
+ * @description Trang chủ chính (Landing Page) của nền tảng EcoSort AI.
+ * Giới thiệu các tính năng nhận diện rác thông minh bằng YOLOv8, bộ quy chuẩn 3 màu thùng rác,
+ * bảng điểm xanh cộng đồng và các nút điều hướng trải nghiệm quét ảnh.
+ */
 import { Link } from "react-router-dom";
 import {
   Camera,
@@ -11,9 +17,7 @@ import {
   History,
   BookOpen,
   Recycle,
-  AlertTriangle,
-  Award,
-  Trash2
+  Award
 } from "lucide-react";
 
 export default function Home() {
