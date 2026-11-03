@@ -1,3 +1,9 @@
+/**
+ * @file History.jsx
+ * @description Trang theo dõi lịch sử và nhật ký phân loại rác của người dùng.
+ * Cung cấp bộ lọc theo danh mục rác, tìm kiếm, tính toán KPI điểm xanh (Eco-Points),
+ * và hỗ trợ 2 chế độ hiển thị: Dạng Lưới (Grid) và Dạng Bảng (Table).
+ */
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -7,8 +13,6 @@ import {
   Trash2,
   Recycle,
   Biohazard,
-  Sparkles,
-  ShieldCheck,
   Award,
   Grid,
   List,
