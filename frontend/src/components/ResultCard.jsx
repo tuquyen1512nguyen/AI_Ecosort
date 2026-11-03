@@ -1,3 +1,18 @@
+/**
+ * @file ResultCard.jsx
+ * @description Thẻ hiển thị kết quả phân tích AI chi tiết sau khi nhận diện rác thành công.
+ * Hiển thị nhãn rác, nhóm phân loại (Tái chế / Sinh hoạt / Nguy hại), thanh đo độ tự tin (Confidence Meter),
+ * thùng rác chỉ định, hướng dẫn xử lý môi trường và các nút hành động điều hướng.
+ * 
+ * @param {Object} props
+ * @param {Object} props.result Dữ liệu kết quả trả về từ API AI
+ * @param {string} props.result.class Tên đối tượng rác nhận diện được
+ * @param {string} props.result.type Loại rác (RECYCLABLE, NON_RECYCLABLE, HAZARDOUS)
+ * @param {number} props.result.confidence Độ tin cậy tính theo phần trăm (0 - 100)
+ * @param {string} props.result.guide Hướng dẫn xử lý môi trường
+ * @param {Function} props.onReset Hàm đặt lại trạng thái để quét ảnh tiếp theo
+ * @param {Function} props.onReport Hàm mở modal báo cáo AI nhận diện sai
+ */
 import { Recycle, Trash2, Biohazard, ShieldCheck, Check, Award, Camera, Flag } from "lucide-react";
 import { Link } from "react-router-dom";
 
