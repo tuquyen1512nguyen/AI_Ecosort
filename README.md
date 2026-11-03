@@ -79,6 +79,16 @@ Toàn bộ tài liệu phân tích nghiệp vụ, kiến trúc phần mềm, câ
 
 ---
 
+## 🔌 Đặc Tả API RESTful (API Endpoints)
+
+| Method | Endpoint | Mô Tả | Request Body | Response (JSON) |
+|:---:|---|---|---|---|
+| `GET` | `/` | Kiểm tra trạng thái gốc của máy chủ AI | None | `{"message": "EcoSort AI Backend API is running.", "docs": "/docs"}` |
+| `GET` | `/api/health` | Healthcheck giám sát trạng thái hệ thống | None | `{"status": "healthy", "service": "EcoSort AI Backend", "version": "1.0.0"}` |
+| `POST` | `/api/predict` | Tiếp nhận hình ảnh và trả kết quả nhận diện | `multipart/form-data` (file) | `{"class": str, "type": str, "confidence": float, "color": str, "guide": str}` |
+
+---
+
 ## 🚀 Hướng Dẫn Cài Đặt & Chạy Cục Bộ (Quick Start)
 
 ### 1. Yêu Cầu Môi Trường
@@ -102,7 +112,7 @@ pip install -r requirements.txt
 # Khởi chạy máy chủ FastAPI với Uvicorn
 uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
-Backend API sẽ hoạt động tại: `http://127.0.0.1:8000` (Swagger UI tại: `http://127.0.0.1:8000/docs`).
+Backend API sẽ hoạt động tại: `http://127.0.0.1:8000` (Swagger UI tương tác tại: `http://127.0.0.1:8000/docs`).
 
 ### 3. Khởi Động Frontend Web Client
 ```bash
@@ -116,6 +126,18 @@ npm install
 npm run dev
 ```
 Frontend sẽ hoạt động tại: `http://localhost:5173`.
+
+### 4. Kiểm Thử & Chẩn Đoán Hệ Thống (Testing & Diagnostics)
+```bash
+# Chẩn đoán môi trường Python và trọng số mô hình YOLOv8
+python scripts/verify_env.py
+
+# Chạy toàn bộ Unit Tests của Backend
+python -m unittest discover backend/tests
+
+# Kiểm tra build production của Frontend
+npm --prefix frontend run build
+```
 
 ---
 

@@ -1,27 +1,42 @@
+/**
+ * @file Login.jsx
+ * @description Trang đăng nhập tài khoản người dùng EcoSort AI qua Firebase Authentication.
+ * Hỗ trợ hiển thị/ẩn mật khẩu, đồng bộ hồ sơ vai trò (Role: user/admin) từ Firestore
+ * và lưu trữ phiên đăng nhập vào LocalStorage.
+ * 
+ * @param {Object} props
+ * @param {Function} props.setUser Hàm cập nhật state thông tin người dùng
+ */
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
+import {
+  Recycle,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Sparkles,
+  AlertCircle
+} from "lucide-react";
+
 import { auth, db } from "../firebase";
 
 export default function Login({ setUser }) {
-import { auth } from "../firebase";
-import { LogIn, Mail, Lock, Eye, EyeOff, AlertCircle, Leaf, Sparkles } from "lucide-react";
-
-/**
- * Trang Đăng Nhập Hệ Thống EcoSort AI
- */
-export default function Login() {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
 
   const login = async (e) => {
     e.preventDefault();
+    setErrorMsg(null);
+    setLoading(true);
 
     try {
       const userCredential = await signInWithEmailAndPassword(
@@ -55,220 +70,105 @@ export default function Login() {
       navigate("/");
     } catch (error) {
       console.error("LOGIN ERROR:", error.code, error.message);
-      alert("Đăng nhập thất bại: " + error.code);
-      setLoading(true);
-      setError("");
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate("/scan");
-    } catch (err) {
-      console.error(err);
-      setError("Email hoặc mật khẩu không chính xác. Vui lòng thử lại.");
+      if (
+        error.code === "auth/invalid-credential" ||
+        error.code === "auth/user-not-found" ||
+        error.code === "auth/wrong-password"
+      ) {
+        setErrorMsg("Email hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại.");
+      } else if (error.code === "auth/too-many-requests") {
+        setErrorMsg("Tài khoản tạm thời bị khóa do thử sai nhiều lần. Vui lòng thử lại sau.");
+      } else {
+        setErrorMsg(`Đăng nhập thất bại: ${error.code}`);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="auth-page">
-      <form className="auth-card" onSubmit={login}>
-        <div className="auth-logo">♻</div>
-
-        <h1>Đăng nhập EcoSort AI</h1>
-        <p>Đăng nhập để quét rác, xem lịch sử và sử dụng hệ thống.</p>
-
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          required
-          onChange={(e) => setEmail(e.target.value)}
-        />
-
-        <input
-          type="password"
-          placeholder="Mật khẩu"
-          value={password}
-          required
-          onChange={(e) => setPassword(e.target.value)}
-        />
-
-        <button type="submit">Đăng nhập</button>
-
-        <span className="auth-link">
-          Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>
-        </span>
-      </form>
-    </main>
-    <div className="page-wrapper container animate-fade-in" style={{ maxWidth: "460px" }}>
-      <div
-        className="glass-card"
-        style={{
-          padding: "2.75rem 2.25rem",
-          borderRadius: "var(--radius-xl)",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        {/* Glow corner */}
-        <div
-          style={{
-            position: "absolute",
-            top: "-40px",
-            right: "-40px",
-            width: "120px",
-            height: "120px",
-            background: "radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%)",
-            filter: "blur(20px)",
-            pointerEvents: "none",
-          }}
-        />
-
-        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <div
-            style={{
-              width: "52px",
-              height: "52px",
-              borderRadius: "16px",
-              background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#fff",
-              marginBottom: "1rem",
-              boxShadow: "0 0 25px var(--primary-glow)",
-            }}
-          >
-            <Leaf size={28} />
+    <main className="auth-page-wrapper">
+      <div className="auth-card-modern">
+        <div className="auth-brand-badge">
+          <div className="auth-logo-box">
+            <Recycle size={28} className="spin-slow" />
           </div>
-
-          <h2 style={{ fontSize: "1.85rem", fontWeight: 800, marginBottom: "0.35rem" }}>
-            Chào Mừng Trở Lại
-          </h2>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
-            Đăng nhập để theo dõi lịch sử và tích lũy điểm sống xanh
-          </p>
+          <span className="auth-brand-name">EcoSort AI</span>
         </div>
 
-        {error && (
-          <div
-            style={{
-              padding: "0.85rem 1rem",
-              backgroundColor: "rgba(239, 68, 68, 0.15)",
-              border: "1px solid rgba(239, 68, 68, 0.35)",
-              borderRadius: "10px",
-              marginBottom: "1.25rem",
-              color: "#fca5a5",
-              fontSize: "0.88rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "0.6rem",
-            }}
-          >
-            <AlertCircle size={18} style={{ color: "var(--hazardous)", flexShrink: 0 }} />
-            <div>{error}</div>
+        <div className="auth-header-text">
+          <h1>Chào Mừng Trở Lại</h1>
+          <p>Đăng nhập để tiếp tục phân loại rác và tích lũy điểm thưởng xanh.</p>
+        </div>
+
+        {errorMsg && (
+          <div className="auth-error-banner">
+            <AlertCircle size={18} />
+            <span>{errorMsg}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
-          {/* Email input */}
-          <div>
-            <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--text-main)" }}>
-              Địa chỉ Email
-            </label>
-            <div style={{ position: "relative" }}>
-              <Mail size={18} style={{ position: "absolute", left: "0.9rem", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
+        <form className="modern-form" onSubmit={login}>
+          <div className="form-field">
+            <label>Địa chỉ Email</label>
+            <div className="input-with-icon">
+              <Mail size={18} className="input-icon" />
               <input
                 type="email"
-                required
+                placeholder="example@ecosort.vn"
                 value={email}
+                required
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="tenban@email.com"
-                style={{
-                  width: "100%",
-                  padding: "0.8rem 1rem 0.8rem 2.6rem",
-                  borderRadius: "10px",
-                  border: "1px solid var(--border-color)",
-                  background: "rgba(15, 23, 42, 0.7)",
-                  color: "#ffffff",
-                  fontSize: "0.92rem",
-                  outline: "none",
-                  transition: "border-color 0.2s ease",
-                }}
-                onFocus={(e) => (e.target.style.borderColor = "var(--primary)")}
-                onBlur={(e) => (e.target.style.borderColor = "var(--border-color)")}
               />
             </div>
           </div>
 
-          {/* Password input */}
-          <div>
-            <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--text-main)" }}>
-              Mật khẩu
-            </label>
-            <div style={{ position: "relative" }}>
-              <Lock size={18} style={{ position: "absolute", left: "0.9rem", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
+          <div className="form-field">
+            <div className="label-row">
+              <label>Mật Khẩu</label>
+            </div>
+            <div className="input-with-icon">
+              <Lock size={18} className="input-icon" />
               <input
                 type={showPassword ? "text" : "password"}
-                required
+                placeholder="Nhập mật khẩu..."
                 value={password}
+                required
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                style={{
-                  width: "100%",
-                  padding: "0.8rem 2.7rem 0.8rem 2.6rem",
-                  borderRadius: "10px",
-                  border: "1px solid var(--border-color)",
-                  background: "rgba(15, 23, 42, 0.7)",
-                  color: "#ffffff",
-                  fontSize: "0.92rem",
-                  outline: "none",
-                  transition: "border-color 0.2s ease",
-                }}
-                onFocus={(e) => (e.target.style.borderColor = "var(--primary)")}
-                onBlur={(e) => (e.target.style.borderColor = "var(--border-color)")}
               />
               <button
                 type="button"
+                className="toggle-pwd-btn"
                 onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: "absolute",
-                  right: "0.85rem",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "transparent",
-                  color: "var(--text-muted)",
-                  padding: "0.2rem",
-                }}
+                tabIndex="-1"
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-primary"
-            style={{
-              marginTop: "0.5rem",
-              padding: "0.9rem",
-              fontSize: "1rem",
-              borderRadius: "10px",
-              opacity: loading ? 0.7 : 1,
-            }}
-          >
-            <LogIn size={18} />
-            {loading ? "Đang xác thực..." : "Đăng Nhập"}
+          <button type="submit" className="primary-btn auth-submit-btn" disabled={loading}>
+            {loading ? (
+              <>
+                <Sparkles size={18} className="spin-slow" />
+                <span>Đang xác thực...</span>
+              </>
+            ) : (
+              <>
+                <span>Đăng Nhập</span>
+                <ArrowRight size={18} />
+              </>
+            )}
           </button>
         </form>
 
-        <p style={{ textAlign: "center", marginTop: "1.75rem", fontSize: "0.88rem", color: "var(--text-muted)" }}>
-          Chưa có tài khoản?{" "}
-          <Link to="/register" style={{ color: "var(--primary-light)", fontWeight: 700 }}>
-            Đăng ký ngay
+        <div className="auth-footer-link">
+          <span>Chưa có tài khoản? </span>
+          <Link to="/register" className="highlight-link">
+            Đăng ký tài khoản mới
           </Link>
-        </p>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }

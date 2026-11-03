@@ -1,18 +1,27 @@
+/**
+ * @file Register.jsx
+ * @description Trang đăng ký tài khoản thành viên mới cho hệ sinh thái EcoSort AI.
+ * Khởi tạo tài khoản trên Firebase Authentication và thiết lập hồ sơ người dùng trong Firestore
+ * với vai trò mặc định (role: 'user') và số điểm xanh khởi đầu.
+ */
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
 import { createUserWithEmailAndPassword } from "firebase/auth";
-
-import {
-  doc,
-  setDoc,
-  serverTimestamp,
-} from "firebase/firestore";
-
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import {
+  Recycle,
+  User,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Sparkles,
+  AlertCircle,
+  CheckCircle2
+} from "lucide-react";
+
 import { auth, db } from "../firebase";
-import { UserPlus, Mail, Lock, Eye, EyeOff, AlertCircle, Leaf, User } from "lucide-react";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -20,90 +29,52 @@ export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-/**
- * Trang Đăng Ký Tài Khoản EcoSort AI
- */
-export default function Register() {
-  const navigate = useNavigate();
-  const [displayName, setDisplayName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
 
   const register = async (e) => {
     e.preventDefault();
+    setErrorMsg(null);
+
+    if (password.length < 6) {
+      setErrorMsg("Mật khẩu phải có độ dài ít nhất 6 ký tự.");
+      return;
+    }
+
+    setLoading(true);
 
     try {
-      // Tạo tài khoản Authentication
-      const userCredential =
-        await createUserWithEmailAndPassword(
-          auth,
-          email.trim(),
-          password
-        );
+      // Create Firebase Auth account
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password
+      );
 
       const uid = userCredential.user.uid;
 
-      // Tạo document Firestore
+      // Create Firestore user document
       await setDoc(doc(db, "users", uid), {
         name: name.trim(),
         email: email.trim(),
-        role: "user", // AUTO USER
+        role: "user",
+        status: "Hoạt động",
         createdAt: serverTimestamp(),
       });
-
-      alert("Đăng ký thành công!");
 
       navigate("/login");
     } catch (error) {
-      console.log(error);
+      console.error("REGISTER ERROR:", error);
 
       if (error.code === "auth/email-already-in-use") {
-        alert("Email đã tồn tại.");
+        setErrorMsg("Email này đã được sử dụng bởi một tài khoản khác.");
+      } else if (error.code === "auth/invalid-email") {
+        setErrorMsg("Định dạng email không hợp lệ.");
       } else if (error.code === "auth/weak-password") {
-        alert("Mật khẩu phải từ 6 ký tự.");
+        setErrorMsg("Mật khẩu quá yếu. Vui lòng chọn mật khẩu phức tạp hơn.");
       } else {
-        alert("Lỗi: " + error.code);
-      }
-    if (password.length < 6) {
-      setError("Mật khẩu phải có ít nhất 6 ký tự.");
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError("Mật khẩu xác nhận không trùng khớp.");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError("");
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      if (displayName) {
-        await updateProfile(user, { displayName });
-      }
-
-      // Khởi tạo document hồ sơ người dùng trong Firestore
-      await setDoc(doc(db, "users", user.uid), {
-        uid: user.uid,
-        displayName: displayName || email.split("@")[0],
-        email: user.email,
-        ecoPoints: 0,
-        role: "user",
-        createdAt: serverTimestamp(),
-      });
-
-      navigate("/scan");
-    } catch (err) {
-      console.error(err);
-      if (err.code === "auth/email-already-in-use") {
-        setError("Email này đã được sử dụng. Vui lòng đăng nhập hoặc chọn email khác.");
-      } else {
-        setError(err.message || "Đăng ký không thành công.");
+        setErrorMsg(`Lỗi đăng ký: ${error.code}`);
       }
     } finally {
       setLoading(false);
@@ -111,268 +82,111 @@ export default function Register() {
   };
 
   return (
-    <main className="auth-page">
-      <form className="auth-card" onSubmit={register}>
-        <div className="auth-logo">♻</div>
-
-        <h1>Đăng ký tài khoản</h1>
-
-        <p>
-          Tạo tài khoản để sử dụng hệ thống phân loại
-          rác thông minh.
-    <div className="page-wrapper container animate-fade-in" style={{ maxWidth: "480px" }}>
-      <div
-        className="glass-card"
-        style={{
-          padding: "2.75rem 2.25rem",
-          borderRadius: "var(--radius-xl)",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <div
-            style={{
-              width: "52px",
-              height: "52px",
-              borderRadius: "16px",
-              background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#fff",
-              marginBottom: "1rem",
-              boxShadow: "0 0 25px var(--primary-glow)",
-            }}
-          >
-            <Leaf size={28} />
+    <main className="auth-page-wrapper">
+      <div className="auth-card-modern">
+        <div className="auth-brand-badge">
+          <div className="auth-logo-box">
+            <Recycle size={28} className="spin-slow" />
           </div>
-
-          <h2 style={{ fontSize: "1.85rem", fontWeight: 800, marginBottom: "0.35rem" }}>
-            Tạo Tài Khoản Mới
-          </h2>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
-            Cùng tham gia cộng đồng phân loại rác thông minh EcoSort AI
-          </p>
+          <span className="auth-brand-name">EcoSort AI</span>
         </div>
 
-        {error && (
-          <div
-            style={{
-              padding: "0.85rem 1rem",
-              backgroundColor: "rgba(239, 68, 68, 0.15)",
-              border: "1px solid rgba(239, 68, 68, 0.35)",
-              borderRadius: "10px",
-              marginBottom: "1.25rem",
-              color: "#fca5a5",
-              fontSize: "0.88rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "0.6rem",
-            }}
-          >
-            <AlertCircle size={18} style={{ color: "var(--hazardous)", flexShrink: 0 }} />
-            <div>{error}</div>
+        <div className="auth-header-text">
+          <h1>Tạo Tài Khoản Mới</h1>
+          <p>Gia nhập cộng đồng phân loại rác thông minh và nhận điểm thưởng xanh.</p>
+        </div>
+
+        {errorMsg && (
+          <div className="auth-error-banner">
+            <AlertCircle size={18} />
+            <span>{errorMsg}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.1rem" }}>
-          {/* Tên người dùng */}
-          <div>
-            <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--text-main)" }}>
-              Họ và tên / Biệt danh
-            </label>
-            <div style={{ position: "relative" }}>
-              <User size={18} style={{ position: "absolute", left: "0.9rem", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
+        <form className="modern-form" onSubmit={register}>
+          <div className="form-field">
+            <label>Họ và Tên</label>
+            <div className="input-with-icon">
+              <User size={18} className="input-icon" />
               <input
                 type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
                 placeholder="Nguyễn Văn A"
-                style={{
-                  width: "100%",
-                  padding: "0.8rem 1rem 0.8rem 2.6rem",
-                  borderRadius: "10px",
-                  border: "1px solid var(--border-color)",
-                  background: "rgba(15, 23, 42, 0.7)",
-                  color: "#ffffff",
-                  fontSize: "0.92rem",
-                  outline: "none",
-                }}
-                onFocus={(e) => (e.target.style.borderColor = "var(--primary)")}
-                onBlur={(e) => (e.target.style.borderColor = "var(--border-color)")}
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
               />
             </div>
           </div>
 
-          {/* Email input */}
-          <div>
-            <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--text-main)" }}>
-              Địa chỉ Email
-            </label>
-            <div style={{ position: "relative" }}>
-              <Mail size={18} style={{ position: "absolute", left: "0.9rem", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
+          <div className="form-field">
+            <label>Địa chỉ Email</label>
+            <div className="input-with-icon">
+              <Mail size={18} className="input-icon" />
               <input
                 type="email"
+                placeholder="example@ecosort.vn"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="tenban@email.com"
-                style={{
-                  width: "100%",
-                  padding: "0.8rem 1rem 0.8rem 2.6rem",
-                  borderRadius: "10px",
-                  border: "1px solid var(--border-color)",
-                  background: "rgba(15, 23, 42, 0.7)",
-                  color: "#ffffff",
-                  fontSize: "0.92rem",
-                  outline: "none",
-                }}
-                onFocus={(e) => (e.target.style.borderColor = "var(--primary)")}
-                onBlur={(e) => (e.target.style.borderColor = "var(--border-color)")}
               />
             </div>
           </div>
 
-          {/* Password input */}
-          <div>
-            <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--text-main)" }}>
-              Mật khẩu (Tối thiểu 6 ký tự)
-            </label>
-            <div style={{ position: "relative" }}>
-              <Lock size={18} style={{ position: "absolute", left: "0.9rem", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
+          <div className="form-field">
+            <label>Mật Khẩu (tối thiểu 6 ký tự)</label>
+            <div className="input-with-icon">
+              <Lock size={18} className="input-icon" />
               <input
                 type={showPassword ? "text" : "password"}
+                placeholder="Tạo mật khẩu an toàn..."
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                style={{
-                  width: "100%",
-                  padding: "0.8rem 2.7rem 0.8rem 2.6rem",
-                  borderRadius: "10px",
-                  border: "1px solid var(--border-color)",
-                  background: "rgba(15, 23, 42, 0.7)",
-                  color: "#ffffff",
-                  fontSize: "0.92rem",
-                  outline: "none",
-                }}
-                onFocus={(e) => (e.target.style.borderColor = "var(--primary)")}
-                onBlur={(e) => (e.target.style.borderColor = "var(--border-color)")}
               />
               <button
                 type="button"
+                className="toggle-pwd-btn"
                 onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: "absolute",
-                  right: "0.85rem",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "transparent",
-                  color: "var(--text-muted)",
-                  padding: "0.2rem",
-                }}
+                tabIndex="-1"
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
 
-          {/* Confirm Password input */}
-          <div>
-            <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--text-main)" }}>
-              Xác nhận mật khẩu
-            </label>
-            <div style={{ position: "relative" }}>
-              <Lock size={18} style={{ position: "absolute", left: "0.9rem", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
-              <input
-                type={showPassword ? "text" : "password"}
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Nhập lại mật khẩu"
-                style={{
-                  width: "100%",
-                  padding: "0.8rem 1rem 0.8rem 2.6rem",
-                  borderRadius: "10px",
-                  border: "1px solid var(--border-color)",
-                  background: "rgba(15, 23, 42, 0.7)",
-                  color: "#ffffff",
-                  fontSize: "0.92rem",
-                  outline: "none",
-                }}
-                onFocus={(e) => (e.target.style.borderColor = "var(--primary)")}
-                onBlur={(e) => (e.target.style.borderColor = "var(--border-color)")}
-              />
+          <div className="auth-benefits-strip">
+            <div className="benefit-item">
+              <CheckCircle2 size={15} color="#10b981" />
+              <span>Đồng bộ nhật ký trên đám mây</span>
+            </div>
+            <div className="benefit-item">
+              <CheckCircle2 size={15} color="#10b981" />
+              <span>Theo dõi điểm thưởng sinh thái</span>
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-primary"
-            style={{
-              marginTop: "0.5rem",
-              padding: "0.9rem",
-              fontSize: "1rem",
-              borderRadius: "10px",
-              opacity: loading ? 0.7 : 1,
-            }}
-          >
-            <UserPlus size={18} />
-            {loading ? "Đang tạo tài khoản..." : "Đăng Ký Thành Viên"}
+          <button type="submit" className="primary-btn auth-submit-btn" disabled={loading}>
+            {loading ? (
+              <>
+                <Sparkles size={18} className="spin-slow" />
+                <span>Đang khởi tạo tài khoản...</span>
+              </>
+            ) : (
+              <>
+                <span>Đăng Ký Tài Khoản</span>
+                <ArrowRight size={18} />
+              </>
+            )}
           </button>
         </form>
 
-        <p style={{ textAlign: "center", marginTop: "1.75rem", fontSize: "0.88rem", color: "var(--text-muted)" }}>
-          Đã có tài khoản?{" "}
-          <Link to="/login" style={{ color: "var(--primary-light)", fontWeight: 700 }}>
+        <div className="auth-footer-link">
+          <span>Đã có tài khoản? </span>
+          <Link to="/login" className="highlight-link">
             Đăng nhập ngay
           </Link>
-        </p>
-
-        <input
-          type="text"
-          placeholder="Họ và tên"
-          required
-          value={name}
-          onChange={(e) =>
-            setName(e.target.value)
-          }
-        />
-
-        <input
-          type="email"
-          placeholder="Email"
-          required
-          value={email}
-          onChange={(e) =>
-            setEmail(e.target.value)
-          }
-        />
-
-        <input
-          type="password"
-          placeholder="Mật khẩu"
-          required
-          value={password}
-          onChange={(e) =>
-            setPassword(e.target.value)
-          }
-        />
-
-        <button type="submit">
-          Đăng ký
-        </button>
-
-        <span className="auth-link">
-          Đã có tài khoản?
-          <Link to="/login">
-            {" "}
-            Đăng nhập
-          </Link>
-        </span>
-      </form>
+        </div>
+      </div>
     </main>
   );
 }

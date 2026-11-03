@@ -1,9 +1,34 @@
+/**
+ * @file Scan.jsx
+ * @description Trang quét và phân loại rác thông minh ứng dụng YOLOv8 AI.
+ * Hỗ trợ tải tệp ảnh từ máy, kéo thả hoặc chụp trực tiếp từ webcam/camera điện thoại,
+ * tự động lưu kết quả vào LocalStorage và Firebase Firestore.
+ */
 import { useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import Webcam from "react-webcam";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import {
+  Camera,
+  UploadCloud,
+  RotateCcw,
+  Sparkles,
+  CheckCircle2,
+  AlertTriangle,
+  Recycle,
+  Trash2,
+  Biohazard,
+  ShieldCheck,
+  Info,
+  Check,
+  Zap,
+  Award,
+  Flag
+} from "lucide-react";
 
 import { predictWasteImage } from "../api/wasteApi";
 import { db } from "../firebase";
+import ReportModal from "../components/ReportModal";
 
 export default function Scan({ user }) {
   const webcamRef = useRef(null);
@@ -13,50 +38,47 @@ export default function Scan({ user }) {
   const [preview, setPreview] = useState(null);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
+  const [isReportOpen, setIsReportOpen] = useState(false);
+
+  // Drag & drop handlers
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      processSelectedFile(e.dataTransfer.files[0]);
+    }
+  };
 
   const chooseFile = (e) => {
-    const img = e.target.files[0];
+    if (e.target.files && e.target.files[0]) {
+      processSelectedFile(e.target.files[0]);
+    }
+  };
 
-    if (!img) return;
-
-    setFile(img);
-    setPreview(URL.createObjectURL(img));
-import { predictWasteImage } from "../api/wasteAPI";
-import UploadCard from "../components/UploadCard";
-import ResultCard from "../components/ResultCard";
-import { 
-  Camera, 
-  UploadCloud, 
-  Sparkles, 
-  RotateCcw, 
-  AlertCircle,
-  ScanLine,
-  Zap,
-  Info
-} from "lucide-react";
-
-/**
- * Trang Quét Rác AI (EcoSort AI Scanner)
- * Trung tâm nhận diện: Hỗ trợ Upload ảnh & Quét Webcam trực tiếp qua YOLOv8
- */
-export default function Scan({ user }) {
-  const webcamRef = useRef(null);
-
-  // States quản lý chế độ và dữ liệu
-  const [mode, setMode] = useState("upload"); // "upload" | "webcam"
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [selectedFileName, setSelectedFileName] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [facingMode, setFacingMode] = useState("environment");
-
-  // Handler: Chọn tệp ảnh tải lên
-  const handleFileSelect = (file) => {
-    setSelectedFile(file);
-    setSelectedFileName(file.name || "waste_image.jpg");
-    setPreviewUrl(URL.createObjectURL(file));
+  const processSelectedFile = (selectedFile) => {
+    if (!selectedFile.type.startsWith("image/")) {
+      setErrorMsg("Vui lòng chọn tệp định dạng hình ảnh (JPG, PNG, JPEG, WEBP).");
+      return;
+    }
+    if (preview && preview.startsWith("blob:")) {
+      URL.revokeObjectURL(preview);
+    }
+    setErrorMsg(null);
+    setFile(selectedFile);
+    setPreview(URL.createObjectURL(selectedFile));
     setResult(null);
   };
 
@@ -64,485 +86,496 @@ export default function Scan({ user }) {
     const imageSrc = webcamRef.current?.getScreenshot();
 
     if (!imageSrc) {
-      alert("Không thể chụp ảnh từ webcam.");
+      setErrorMsg("Không thể chụp ảnh từ webcam. Vui lòng kiểm tra quyền camera.");
       return;
     }
 
+    setErrorMsg(null);
     setPreview(imageSrc);
 
-    const blob = await fetch(imageSrc).then((res) => res.blob());
-
-    const webcamFile = new File([blob], "webcam-capture.jpg", {
-      type: "image/jpeg",
-    });
-
-    setFile(webcamFile);
-    setResult(null);
-  };
-
-  const resetScan = () => {
-    setFile(null);
-    setPreview(null);
     try {
-      const fetchRes = await fetch(imageSrc);
-      const blob = await fetchRes.blob();
-      const file = new File([blob], `webcam_${Date.now()}.jpg`, { type: "image/jpeg" });
+      const blob = await fetch(imageSrc).then((res) => res.blob());
+      const webcamFile = new File([blob], "webcam-capture.jpg", {
+        type: "image/jpeg",
+      });
 
-      setSelectedFile(file);
-      setSelectedFileName(file.name);
-      setPreviewUrl(imageSrc);
+      setFile(webcamFile);
       setResult(null);
-      setErrorMessage("");
     } catch (err) {
-      console.error("Lỗi khi xử lý khung hình webcam:", err);
-      setErrorMessage("Không thể chụp khung hình từ camera.");
+      console.error(err);
+      setErrorMsg("Lỗi khi xử lý ảnh chụp webcam.");
     }
   };
 
-  // Handler: Reset lại trạng thái để quét vật thể mới
-  const handleReset = () => {
-    setSelectedFile(null);
-    setSelectedFileName("");
-    setPreviewUrl(null);
+  const resetScan = () => {
+    if (preview && preview.startsWith("blob:")) {
+      URL.revokeObjectURL(preview);
+    }
+    setFile(null);
+    setPreview(null);
     setResult(null);
+    setErrorMsg(null);
   };
 
   const saveHistoryToFirestore = async (data) => {
-    await addDoc(collection(db, "history"), {
-      uid: user?.uid || "guest",
-      email: user?.email || "guest",
-      class: data.class,
-      type: data.type,
-      confidence: data.confidence,
-      guide: data.guide,
-      imagePreview: preview || "",
-      createdAt: serverTimestamp(),
-    });
+    try {
+      await addDoc(collection(db, "history"), {
+        uid: user?.uid || "guest",
+        email: user?.email || "guest",
+        class: data.class || "Unknown",
+        type: data.type || "NON_RECYCLABLE",
+        confidence: data.confidence || 0,
+        guide: data.guide || "",
+        imagePreview: preview || "",
+        createdAt: serverTimestamp(),
+      });
+    } catch (err) {
+      console.warn("Firestore save skipped/error:", err);
+    }
   };
 
   const saveHistoryToLocalStorage = (data) => {
-    const historyKey = user?.uid ? `history_${user.uid}` : "history_guest";
+    try {
+      const historyKey = user?.uid ? `history_${user.uid}` : "history_guest";
+      const history = JSON.parse(localStorage.getItem(historyKey)) || [];
 
-    const history = JSON.parse(localStorage.getItem(historyKey)) || [];
+      history.unshift({
+        ...data,
+        uid: user?.uid || "guest",
+        email: user?.email || "Khách",
+        imagePreview: preview || "",
+        time: new Date().toLocaleString("vi-VN", {
+          hour: "2-digit",
+          minute: "2-digit",
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        }),
+      });
 
-    history.unshift({
-      ...data,
-      uid: user?.uid || "guest",
-      email: user?.email || "guest",
-      time: new Date().toLocaleString("vi-VN"),
-    });
-
-    localStorage.setItem(historyKey, JSON.stringify(history));
+      localStorage.setItem(historyKey, JSON.stringify(history.slice(0, 50)));
+    } catch (err) {
+      console.warn("LocalStorage save error:", err);
+    }
   };
 
   const analyze = async () => {
     if (!file) {
-      alert("Vui lòng chọn hoặc chụp ảnh trước.");
+      setErrorMsg("Vui lòng chọn hoặc chụp ảnh vật phẩm trước khi phân tích.");
       return;
     }
 
     try {
       setLoading(true);
+      setErrorMsg(null);
 
       const data = await predictWasteImage(file);
-
       setResult(data);
 
       saveHistoryToLocalStorage(data);
-
       await saveHistoryToFirestore(data);
     } catch (error) {
       console.error("SCAN ERROR:", error);
-      alert("Lỗi khi phân tích hoặc lưu lịch sử.");
-      setErrorMessage("");
-
-      // 1. Gọi API AI Backend
-      const predictionData = await predictWasteImage(selectedFile);
-      setResult(predictionData);
-
-      // 2. Đồng bộ kết quả vào Firestore nếu người dùng đã đăng nhập
-      if (user && predictionData.type !== "UNKNOWN") {
-        await addDoc(collection(db, "history"), {
-          userId: user.uid,
-          userEmail: user.email || "",
-          className: predictionData.class,
-          wasteType: predictionData.type,
-          confidence: predictionData.confidence,
-          guide: predictionData.guide,
-          color: predictionData.color,
-          createdAt: serverTimestamp(),
-        });
-      }
-    } catch (err) {
-      setErrorMessage("Không thể kết nối máy chủ AI backend hoặc xử lý ảnh thất bại. Hãy chắc chắn backend FastAPI đang chạy tại http://127.0.0.1:8000.");
-      console.error(err);
+      setErrorMsg("Không thể kết nối đến máy chủ AI hoặc có lỗi trong quá trình phân tích ảnh.");
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <main className="scan-page">
-      <div className="scan-left">
-        <h1>Nhận Diện Rác Thải</h1>
-        <p>Tải ảnh lên hoặc chụp trực tiếp để AI phân loại giúp bạn.</p>
+  const getCategoryConfig = (type) => {
+    switch (type) {
+      case "RECYCLABLE":
+        return {
+          title: "RÁC TÁI CHẾ",
+          badgeClass: "badge-cat-recyclable",
+          color: "#10b981",
+          bin: "Thùng Xanh Lá (Tái Chế)",
+          icon: <Recycle size={20} />,
+          tips: [
+            "Súc rửa sạch sẽ cặn thừa bên trong",
+            "Bóp dẹp hoặc gấp gọn để tiết kiệm thể tích",
+            "Bỏ vào thùng rác tái chế có dán nhãn xanh"
+          ]
+        };
+      case "HAZARDOUS":
+        return {
+          title: "RÁC NGUY HẠI",
+          badgeClass: "badge-cat-hazardous",
+          color: "#ef4444",
+          bin: "Thùng Đỏ (Rác Nguy Hại)",
+          icon: <Biohazard size={20} />,
+          tips: [
+            "Tuyệt đối không bỏ chung với rác sinh hoạt",
+            "Bọc kín hai đầu cực hoặc dán băng dính cách điện",
+            "Đem tới điểm thu gom chất thải nguy hại địa phương"
+          ]
+        };
+      case "NON_RECYCLABLE":
+      default:
+        return {
+          title: "RÁC SINH HOẠT / THƯỜNG",
+          badgeClass: "badge-cat-nonrec",
+          color: "#64748b",
+          bin: "Thùng Xám / Thường",
+          icon: <Trash2 size={20} />,
+          tips: [
+            "Đóng gói kín túi rác để tránh rò rỉ mùi",
+            "Bỏ vào thùng rác thải sinh hoạt hàng ngày",
+            "Hạn chế sử dụng đồ nhựa dùng một lần"
+          ]
+        };
+    }
+  };
 
-        <div className="scan-tabs">
+  const catConfig = result ? getCategoryConfig(result.type) : null;
+
+  return (
+    <main className="scan-layout">
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={isReportOpen}
+        onClose={() => setIsReportOpen(false)}
+        currentResult={result}
+        imagePreview={preview}
+        user={user}
+      />
+
+      {/* LEFT COLUMN: UPLOAD & CONTROLS */}
+      <div className="scan-control-panel">
+        <div className="scan-panel-header">
+          <div className="panel-badge">
+            <Sparkles size={14} />
+            <span>AI SCANNER ENGINE</span>
+          </div>
+          <h1>Nhận Diện & Phân Loại Rác</h1>
+          <p>Tải ảnh chụp vật thể rác hoặc mở camera trực tiếp để mô hình YOLOv8 phân loại tức thì.</p>
+        </div>
+
+        {/* MODE SWITCH TABS */}
+        <div className="mode-toggle-group">
           <button
             type="button"
-            className={mode === "upload" ? "tab-active" : ""}
+            className={`mode-btn ${mode === "upload" ? "active" : ""}`}
             onClick={() => {
               setMode("upload");
               resetScan();
             }}
           >
-            🖼 Tải ảnh
-    <div className="page-wrapper container animate-fade-in" style={{ maxWidth: "860px" }}>
-      {/* Page Header */}
-      <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.45rem",
-            padding: "0.35rem 0.95rem",
-            borderRadius: "9999px",
-            background: "rgba(16, 185, 129, 0.12)",
-            border: "1px solid rgba(16, 185, 129, 0.3)",
-            color: "var(--primary-light)",
-            fontSize: "0.82rem",
-            fontWeight: 600,
-            marginBottom: "0.85rem",
-          }}
-        >
-          <Sparkles size={15} />
-          <span>YOLOv8 Nano Inference Engine</span>
-        </div>
-
-        <h1 style={{ fontSize: "2.35rem", fontWeight: 800, marginBottom: "0.5rem" }}>
-          Nhận Diện & Phân Loại Rác
-        </h1>
-        <p style={{ color: "var(--text-muted)", fontSize: "0.98rem", maxWidth: "600px", margin: "0 auto" }}>
-          Tải ảnh lên hoặc hướng camera vào vật thể để AI phân tích và cung cấp hướng dẫn xử lý trong tích tắc.
-        </p>
-
-        {/* Tab chuyển đổi chế độ */}
-        <div
-          style={{
-            display: "inline-flex",
-            background: "rgba(30, 41, 59, 0.7)",
-            backdropFilter: "blur(8px)",
-            border: "1px solid var(--border-color)",
-            borderRadius: "12px",
-            padding: "4px",
-            marginTop: "1.5rem",
-          }}
-        >
-          <button
-            type="button"
-            onClick={() => {
-              setMode("upload");
-              if (!result) handleReset();
-            }}
-            style={{
-              padding: "0.6rem 1.35rem",
-              borderRadius: "8px",
-              background: mode === "upload" ? "linear-gradient(135deg, #10b981, #059669)" : "transparent",
-              color: mode === "upload" ? "#ffffff" : "var(--text-muted)",
-              boxShadow: mode === "upload" ? "0 4px 12px var(--primary-glow)" : "none",
-              fontSize: "0.9rem",
-            }}
-          >
-            <UploadCloud size={17} />
-            Tải Ảnh Lên
+            <UploadCloud size={18} />
+            <span>Tải Ảnh Lên</span>
           </button>
 
           <button
             type="button"
-            className={mode === "camera" ? "tab-active" : ""}
+            className={`mode-btn ${mode === "camera" ? "active" : ""}`}
             onClick={() => {
               setMode("camera");
               resetScan();
             }}
           >
-            📷 Webcam
-            onClick={() => {
-              setMode("webcam");
-              if (!result) handleReset();
-            }}
-            style={{
-              padding: "0.6rem 1.35rem",
-              borderRadius: "8px",
-              background: mode === "webcam" ? "linear-gradient(135deg, #10b981, #059669)" : "transparent",
-              color: mode === "webcam" ? "#ffffff" : "var(--text-muted)",
-              boxShadow: mode === "webcam" ? "0 4px 12px var(--primary-glow)" : "none",
-              fontSize: "0.9rem",
-            }}
-          >
-            <Camera size={17} />
-            Quét Qua Camera
+            <Camera size={18} />
+            <span>Webcam Trực Tiếp</span>
           </button>
         </div>
 
-        {mode === "upload" ? (
-          <label className="upload-zone">
-            {preview ? (
-              <img src={preview} alt="preview" className="preview" />
-            ) : (
-              <>
-                <div className="upload-icon">☁️</div>
-                <h3>Kéo và thả ảnh vào đây</h3>
-                <p>Hỗ trợ JPG, PNG, JPEG</p>
-                <span>Chọn Ảnh Từ Thiết Bị</span>
-              </>
-            )}
-
-            <input type="file" accept="image/*" hidden onChange={chooseFile} />
-          </label>
-        ) : (
-          <div className="webcam-zone">
-            {preview ? (
-              <img src={preview} alt="webcam-preview" className="preview" />
-            ) : (
-      {/* Thông báo lỗi nếu có */}
-      {errorMessage && (
-        <div
-          style={{
-            padding: "0.85rem 1.25rem",
-            backgroundColor: "rgba(239, 68, 68, 0.15)",
-            border: "1px solid rgba(239, 68, 68, 0.4)",
-            borderRadius: "12px",
-            marginBottom: "1.5rem",
-            color: "#fca5a5",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.75rem",
-            fontSize: "0.9rem",
-            animation: "fadeIn 0.3s ease",
-          }}
-        >
-          <AlertCircle size={20} style={{ flexShrink: 0, color: "var(--hazardous)" }} />
-          <div>{errorMessage}</div>
-        </div>
-      )}
-
-      {/* Vùng Tương Tác Theo Mode */}
-      {mode === "upload" ? (
-        <UploadCard
-          onFileSelect={handleFileSelect}
-          previewUrl={previewUrl}
-          selectedFileName={selectedFileName}
-        />
-      ) : (
-        <div className="glass-card" style={{ textAlign: "center", padding: "1.5rem" }}>
-          {previewUrl ? (
-            <div>
-              <div style={{ position: "relative", display: "inline-block", maxWidth: "100%" }}>
-                <img
-                  src={previewUrl}
-                  alt="Captured frame"
-                  style={{
-                    maxHeight: "360px",
-                    maxWidth: "100%",
-                    borderRadius: "var(--radius-md)",
-                    objectFit: "contain",
-                    boxShadow: "0 12px 30px rgba(0, 0, 0, 0.6)",
-                  }}
-                />
-              </div>
-
-              <div style={{ marginTop: "1.25rem" }}>
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="btn-secondary"
-                  style={{ padding: "0.55rem 1.25rem", fontSize: "0.88rem", borderRadius: "8px" }}
-                >
-                  <RotateCcw size={16} />
-                  Chụp Lại Khung Hình Khác
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div style={{ position: "relative", maxWidth: "560px", margin: "0 auto", overflow: "hidden", borderRadius: "16px" }}>
-              {/* Futuristic Viewfinder Reticle & Laser */}
-              <div className="viewfinder-corner corner-tl" />
-              <div className="viewfinder-corner corner-tr" />
-              <div className="viewfinder-corner corner-bl" />
-              <div className="viewfinder-corner corner-br" />
-              <div className="laser-line" />
-
-              <Webcam
-                ref={webcamRef}
-                audio={false}
-                screenshotFormat="image/jpeg"
-                className="webcam"
-                videoConstraints={{
-                  facingMode: "environment",
-                }}
-              />
-            )}
-
-            <button type="button" className="camera-btn" onClick={captureWebcam}>
-              📸 Chụp ảnh
-            </button>
-
-            {preview && (
-              <button type="button" className="secondary-btn" onClick={resetScan}>
-                🔄 Chụp lại
-              </button>
-            )}
+        {/* ERROR NOTIFICATION */}
+        {errorMsg && (
+          <div className="scan-alert-error">
+            <AlertTriangle size={18} />
+            <span>{errorMsg}</span>
           </div>
         )}
 
-        <button
-          type="button"
-          className="primary-btn"
-          onClick={analyze}
-          disabled={!file || loading}
-        >
-          {loading ? "Đang phân tích..." : "🔍 Phân tích ngay"}
-        </button>
+        {/* INPUT VIEWPORT */}
+        <div className="scan-viewport-container">
+          {mode === "upload" ? (
+            <div
+              className={`dropzone-card ${dragActive ? "drag-over" : ""} ${preview ? "has-preview" : ""}`}
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+            >
+              {preview ? (
+                <div className="preview-stage">
+                  <img src={preview} alt="Ảnh rác cần phân tích" className="preview-image" />
+                  
+                  {loading && (
+                    <div className="scanning-overlay">
+                      <div className="laser-beam"></div>
+                      <div className="scanning-radar">
+                        <Sparkles size={32} className="spin-slow text-white" />
+                        <span>AI đang phân tích cấu trúc...</span>
+                      </div>
+                    </div>
+                  )}
 
-        <div className="tips-grid">
-          <div>
-            💡 <b>Ánh sáng tốt</b>
-            <p>Chụp ở nơi đủ sáng để AI nhận diện tốt hơn.</p>
-          </div>
-
-          <div>
-            🎯 <b>Vật thể rõ ràng</b>
-            <p>Tránh chụp nhiều loại rác cùng một lúc.</p>
-          </div>
-
-          <div>
-            🧼 <b>Làm sạch rác</b>
-            <p>Nên đổ sạch chất lỏng bên trong chai lọ.</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="scan-right">
-        <div className="result-panel">
-          {result ? (
-            <>
-              {preview && <img src={preview} alt="result" />}
-
-              <div className="result-content">
-                <h2>{result.class}</h2>
-                <p>Độ tin cậy: {result.confidence}%</p>
-
-                <div className="info-row">✅ Loại: {result.type}</div>
-                <div className="info-row">⚠️ {result.guide}</div>
-                <div className="info-row">
-                  🌱 Kết quả đã được lưu vào lịch sử
+                  {!loading && (
+                    <button type="button" className="btn-change-image" onClick={resetScan}>
+                      <RotateCcw size={15} />
+                      <span>Đổi ảnh khác</span>
+                    </button>
+                  )}
                 </div>
-
-                <button type="button" className="primary-btn" onClick={resetScan}>
-                  Quét ảnh mới
-                videoConstraints={{ facingMode: facingMode }}
-                style={{
-                  width: "100%",
-                  maxHeight: "380px",
-                  borderRadius: "16px",
-                  objectFit: "cover",
-                  display: "block",
-                  background: "#0f172a",
-                }}
-              />
-
-              {/* Status pill overlay */}
-              <div
-                style={{
-                  position: "absolute",
-                  top: "14px",
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  background: "rgba(15, 23, 42, 0.75)",
-                  backdropFilter: "blur(6px)",
-                  padding: "0.3rem 0.75rem",
-                  borderRadius: "9999px",
-                  border: "1px solid rgba(255, 255, 255, 0.15)",
-                  color: "#ffffff",
-                  fontSize: "0.75rem",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.4rem",
-                  zIndex: 10,
-                }}
-              >
-                <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#10b981", animation: "pulseGlow 1.5s infinite" }} />
-                <span>Đặt vật thể vào trung tâm khung ngắm</span>
-              </div>
-
-              {/* Capture controls */}
-              <div
-                style={{
-                  marginTop: "1.25rem",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  gap: "0.75rem",
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={handleCaptureWebcam}
-                  className="btn-primary btn-pill"
-                  style={{
-                    padding: "0.85rem 2.25rem",
-                    fontSize: "1.05rem",
-                    fontWeight: 700,
-                  }}
-                >
-                  <Camera size={20} />
-                  Chụp Khung Hình
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setFacingMode((prev) => (prev === "user" ? "environment" : "user"))}
-                  className="btn-secondary btn-pill"
-                  style={{ padding: "0.85rem 1rem", fontSize: "0.85rem" }}
-                  title="Đổi camera trước/sau"
-                >
-                  <RotateCcw size={18} />
-                </button>
-              </div>
-            </>
+              ) : (
+                <label className="dropzone-label">
+                  <div className="dropzone-icon-circle">
+                    <UploadCloud size={36} />
+                  </div>
+                  <h3>Kéo và thả ảnh vào đây</h3>
+                  <p>hoặc nhấn để duyệt tệp từ thiết bị</p>
+                  <div className="dropzone-formats">
+                    <span className="format-tag">PNG</span>
+                    <span className="format-tag">JPG</span>
+                    <span className="format-tag">JPEG</span>
+                    <span className="format-tag">WEBP</span>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/png, image/jpeg, image/jpg, image/webp"
+                    hidden
+                    onChange={chooseFile}
+                  />
+                </label>
+              )}
+            </div>
           ) : (
-            <div className="empty-result">
-              <h2>Kết quả nhận diện</h2>
-              <p>Vui lòng tải ảnh hoặc chụp webcam để AI phân tích.</p>
+            <div className="webcam-stage-card">
+              {preview ? (
+                <div className="preview-stage">
+                  <img src={preview} alt="Ảnh chụp webcam" className="preview-image" />
+                  
+                  {loading && (
+                    <div className="scanning-overlay">
+                      <div className="laser-beam"></div>
+                      <div className="scanning-radar">
+                        <Sparkles size={32} className="spin-slow text-white" />
+                        <span>AI đang phân tích chi tiết...</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {!loading && (
+                    <button type="button" className="btn-change-image" onClick={resetScan}>
+                      <RotateCcw size={15} />
+                      <span>Chụp lại</span>
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="webcam-viewfinder">
+                  <Webcam
+                    ref={webcamRef}
+                    audio={false}
+                    screenshotFormat="image/jpeg"
+                    className="webcam-stream"
+                    videoConstraints={{
+                      facingMode: "environment",
+                    }}
+                  />
+                  <div className="hud-corner top-left"></div>
+                  <div className="hud-corner top-right"></div>
+                  <div className="hud-corner bottom-left"></div>
+                  <div className="hud-corner bottom-right"></div>
+                  
+                  <div className="hud-center-reticle">
+                    <span>Đặt vật phẩm vào giữa khung hình</span>
+                  </div>
+
+                  <button type="button" className="hud-capture-btn" onClick={captureWebcam}>
+                    <Camera size={20} />
+                    <span>Chụp Ảnh Này</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
-      </div>
-    </main>
-      )}
 
-      {/* Nút Thực Thi Phân Loại */}
-      {selectedFile && !loading && !result && (
-        <div style={{ textAlign: "center", marginTop: "1.75rem" }}>
+        {/* PRIMARY ACTION BUTTON */}
+        <div className="scan-actions-bar">
           <button
             type="button"
-            onClick={handlePredict}
-            className="btn-primary btn-pill"
-            style={{
-              padding: "1rem 3rem",
-              fontSize: "1.15rem",
-              fontWeight: 800,
-              boxShadow: "0 8px 30px var(--primary-glow)",
-            }}
+            className="primary-btn scan-analyze-btn"
+            onClick={analyze}
+            disabled={!file || loading}
           >
-            <Zap size={22} />
-            Phân Loại Rác Bằng AI
+            {loading ? (
+              <>
+                <Sparkles size={18} className="spin-slow" />
+                <span>Đang xử lý thị giác máy tính...</span>
+              </>
+            ) : (
+              <>
+                <Zap size={18} />
+                <span>Phân Tích AI Ngay</span>
+              </>
+            )}
           </button>
         </div>
-      )}
 
-      {/* Hiển Thị Kết Quả Phân Loại */}
-      <ResultCard result={result} loading={loading} onReset={handleReset} user={user} />
-    </div>
+        {/* QUICK PHOTO TIPS */}
+        <div className="scan-tips-card">
+          <div className="tips-head">
+            <Info size={16} color="#10b981" />
+            <span>Mẹo chụp ảnh để đạt độ chính xác cao (&gt;95%):</span>
+          </div>
+          <div className="tips-list">
+            <div className="tip-item">
+              <span className="tip-bullet">1</span>
+              <p>Đủ ánh sáng, tránh ảnh bị tối hoặc lóa sáng chói.</p>
+            </div>
+            <div className="tip-item">
+              <span className="tip-bullet">2</span>
+              <p>Đặt 1 món rác chính ở giữa khung hình, tránh để lẫn lộn.</p>
+            </div>
+            <div className="tip-item">
+              <span className="tip-bullet">3</span>
+              <p>Đối với chai lọ, nên làm sạch nước đọng bên trong.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT COLUMN: AI RESULT DISPLAY */}
+      <div className="scan-result-panel">
+        {result && catConfig ? (
+          <div className="result-card-glow">
+            {/* Header with Category Badge */}
+            <div className="result-card-header">
+              <div className={`result-category-badge ${catConfig.badgeClass}`}>
+                {catConfig.icon}
+                <span>{catConfig.title}</span>
+              </div>
+              <div className="result-time-chip">
+                <span>Vừa xong</span>
+              </div>
+            </div>
+
+            {/* Main Object Title & Confidence */}
+            <div className="result-object-box">
+              <div className="result-title-row">
+                <h2>{result.class}</h2>
+                <div className="confidence-pill">
+                  <ShieldCheck size={16} color="#10b981" />
+                  <span>{result.confidence}% tin cậy</span>
+                </div>
+              </div>
+
+              {/* Confidence Progress Meter */}
+              <div className="conf-meter-wrapper">
+                <div className="conf-meter-labels">
+                  <span>Mức độ tự tin của mô hình AI</span>
+                  <b>{result.confidence}%</b>
+                </div>
+                <div className="conf-progress-track">
+                  <div
+                    className="conf-progress-fill"
+                    style={{ width: `${Math.min(result.confidence, 100)}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Recommended Disposal Bin */}
+            <div className="result-bin-card">
+              <div className="bin-icon-box" style={{ background: catConfig.color }}>
+                {catConfig.icon}
+              </div>
+              <div className="bin-info">
+                <span className="bin-label">Thùng rác chỉ định:</span>
+                <strong className="bin-name">{catConfig.bin}</strong>
+              </div>
+            </div>
+
+            {/* Step by step action tips */}
+            <div className="result-instructions">
+              <h4>Hướng dẫn xử lý đúng cách:</h4>
+              <p className="guide-statement">{result.guide}</p>
+              
+              <div className="instruction-checklist">
+                {catConfig.tips.map((tip, idx) => (
+                  <div className="checklist-row" key={idx}>
+                    <div className="checklist-icon">
+                      <Check size={14} />
+                    </div>
+                    <span>{tip}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Eco Reward Banner */}
+            <div className="eco-reward-banner">
+              <Award size={20} color="#10b981" />
+              <div>
+                <strong>+10 Điểm Xanh (Eco-Points)</strong>
+                <p>Đã ghi nhận vào nhật ký phân loại rác tích cực của bạn!</p>
+              </div>
+            </div>
+
+            {/* Report Button */}
+            <button
+              type="button"
+              onClick={() => setIsReportOpen(true)}
+              className="btn-outline-danger"
+              style={{ width: "100%", justifyContent: "center", borderRadius: "12px", padding: "10px" }}
+            >
+              <Flag size={15} />
+              <span>AI nhận diện sai? Báo cáo để cải thiện (+5 pts)</span>
+            </button>
+
+            {/* Post-scan Action buttons */}
+            <div className="result-actions-group">
+              <button type="button" className="primary-btn full-w" onClick={resetScan}>
+                <Camera size={18} />
+                <span>Quét Ảnh Tiếp Theo</span>
+              </button>
+
+              <div className="result-sec-actions">
+                <Link to="/history" className="secondary-btn flex-1 text-center">
+                  Xem Lịch Sử
+                </Link>
+                <Link to="/guide" className="secondary-btn flex-1 text-center">
+                  Cẩm Nang Chi Tiết
+                </Link>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Empty / Waiting state */
+          <div className="scan-waiting-card">
+            <div className="waiting-radar-animation">
+              <div className="radar-circle circle-1"></div>
+              <div className="radar-circle circle-2"></div>
+              <div className="radar-circle circle-3"></div>
+              <div className="radar-icon-center">
+                <Sparkles size={36} color="#10b981" />
+              </div>
+            </div>
+
+            <h3>Sẵn Sàng Nhận Diện</h3>
+            <p>
+              Chọn hoặc chụp một bức ảnh ở cột bên trái, sau đó nhấn nút <b>"Phân Tích AI Ngay"</b> để xem kết quả phân loại rác, độ tin cậy và hướng dẫn xử lý môi trường.
+            </p>
+
+            <div className="waiting-checklist">
+              <div className="wait-item">
+                <CheckCircle2 size={16} color="#10b981" />
+                <span>Hỗ trợ 22 nhóm rác thải sinh hoạt</span>
+              </div>
+              <div className="wait-item">
+                <CheckCircle2 size={16} color="#10b981" />
+                <span>Phân loại chuẩn 3 màu thùng rác</span>
+              </div>
+              <div className="wait-item">
+                <CheckCircle2 size={16} color="#10b981" />
+                <span>Tự động lưu vào lịch sử cá nhân</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </main>
   );
 }

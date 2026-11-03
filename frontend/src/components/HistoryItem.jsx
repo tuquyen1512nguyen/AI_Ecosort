@@ -1,261 +1,86 @@
-import { NavLink, useNavigate } from "react-router-dom";
+/**
+ * HistoryItem Component
+ * Renders an individual waste scan history entry card with category badge, thumbnail,
+ * confidence score, disposal guide, and delete action.
+ */
 
-export default function Navbar({ user, setUser }) {
-  const navigate = useNavigate();
-
-  const logout = () => {
-    localStorage.removeItem("currentUser");
-    setUser(null);
-    navigate("/");
-  };
-
-  const navClass = ({ isActive }) =>
-    isActive ? "active-link" : "";
-import React, { useState } from "react";
-import { Recycle, Flame, AlertTriangle, Clock, Calendar, CheckCircle2, Flag } from "lucide-react";
-import ReportModal from "./ReportModal";
-
-// Từ điển tên tiếng Việt
-const VIETNAMESE_NAMES = {
-  cardboard_box: "Thùng Carton",
-  can: "Lon Kim Loại",
-  plastic_bottle_cap: "Nắp Chai Nhựa",
-  plastic_bottle: "Chai Nhựa (PET/HDPE)",
-  reuseable_paper: "Giấy Vở / Giấy In",
-  plastic_bag: "Túi Nilon Sinh Hoạt",
-  scrap_paper: "Giấy Dơ / Khăn Giấy",
-  stick: "Que Gỗ / Que Kem",
-  plastic_cup: "Cốc Nhựa Dùng 1 Lần",
-  snack_bag: "Vỏ Bánh Kẹo",
-  plastic_box: "Hộp Xốp / Hộp Cơm",
-  straw: "Ống Hút Nhựa",
-  plastic_cup_lid: "Nắp Cốc Mang Đi",
-  scrap_plastic: "Mảnh Nhựa Vỡ Vụn",
-  cardboard_bowl: "Tô Giấy Đựng Thức Ăn",
-  plastic_cultery: "Muỗng Đũa Nhựa",
-  battery: "Pin Gia Dụng",
-  chemical_spray_can: "Bình Xịt Khí Nén",
-  chemical_plastic_bottle: "Chai Lọ Hóa Chất",
-  chemical_plastic_gallon: "Can Nhựa Hóa Chất",
-  light_bulb: "Bóng Đèn Huỳnh Quang",
-  paint_bucket: "Thùng Vỏ Sơn",
-};
+import { Recycle, Trash2, Biohazard, Calendar } from "lucide-react";
 
 /**
- * Component Thẻ Lịch Sử Phân Loại Cá Nhân
+ * Helper ánh xạ nhóm rác sang nhãn hiển thị tiếng Việt, class CSS và icon tương ứng.
+ *
+ * @param {string} type - Nhóm phân loại (RECYCLABLE, HAZARDOUS, NON_RECYCLABLE)
+ * @returns {{ label: string, badgeClass: string, Icon: typeof Recycle }}
  */
-export default function HistoryItem({ item, user }) {
-  const [showReportModal, setShowReportModal] = useState(false);
-  const [reported, setReported] = useState(false);
-  const formattedTime = item.createdAt?.toDate
-    ? item.createdAt.toDate().toLocaleString("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "Vừa xong";
+function getCategoryMeta(type) {
+  switch (type) {
+    case "RECYCLABLE":
+      return { label: "Tái Chế", badgeClass: "badge-green", Icon: Recycle };
+    case "HAZARDOUS":
+      return { label: "Nguy Hại", badgeClass: "badge-red", Icon: Biohazard };
+    case "NON_RECYCLABLE":
+    default:
+      return { label: "Sinh Hoạt", badgeClass: "badge-gray", Icon: Trash2 };
+  }
+}
 
-  const getCategoryDetails = (type) => {
-    switch (type) {
-      case "RECYCLABLE":
-        return {
-          label: "Rác Tái Chế",
-          color: "var(--recyclable)",
-          bg: "var(--recyclable-bg)",
-          icon: <Recycle size={14} />,
-        };
-      case "HAZARDOUS":
-        return {
-          label: "Rác Nguy Hại",
-          color: "var(--hazardous)",
-          bg: "var(--hazardous-bg)",
-          icon: <AlertTriangle size={14} />,
-        };
-      default:
-        return {
-          label: "Rác Sinh Hoạt",
-          color: "var(--non-recyclable)",
-          bg: "var(--non-recyclable-bg)",
-          icon: <Flame size={14} />,
-        };
-    }
-  };
+/**
+ * @param {Object} props
+ * @param {Object} props.item - Dữ liệu của một bản ghi quét rác
+ * @param {string} [props.item.imagePreview] - URL ảnh thumbnail xem trước
+ * @param {string} [props.item.time] - Thời gian quét rác
+ * @param {string} [props.item.class] - Tên vật thể rác
+ * @param {string} [props.item.type] - Nhóm rác (RECYCLABLE, HAZARDOUS, NON_RECYCLABLE)
+ * @param {number} [props.item.confidence] - Tỷ lệ phần trăm tin cậy
+ * @param {string} [props.item.guide] - Hướng dẫn xử lý rác
+ * @param {Function} [props.onDelete] - Callback xử lý khi người dùng nhấn nút xóa
+ */
+export default function HistoryItem({ item, onDelete }) {
+  if (!item) return null;
 
-  const cat = getCategoryDetails(item.wasteType);
-  const displayName = VIETNAMESE_NAMES[item.className] || item.className;
+  const { label, badgeClass, Icon } = getCategoryMeta(item.type);
+  const confidenceScore = item.confidence != null ? item.confidence : 0;
+  const itemTitle = item.class || "Vật thể chưa rõ";
+  const itemGuide = item.guide || "Phân loại theo chỉ dẫn.";
+  const itemTime = item.time || "Vừa xong";
 
   return (
-    <nav className="navbar">
-      <div className="nav-container">
-        <div className="brand" onClick={() => navigate("/")}>
-          <div className="brand-icon">♻</div>
-          <span>EcoSort AI</span>
+    <div className="history-item-card">
+      {item.imagePreview && (
+        <div className="history-card-thumb">
+          <img src={item.imagePreview} alt={itemTitle} />
+          <span className="history-thumb-time">
+            <Calendar size={12} /> {itemTime}
+          </span>
+        </div>
+      )}
+
+      <div className="history-card-body">
+        <div className="history-card-top">
+          <span className={`cat-pill ${badgeClass}`}>
+            <Icon size={14} />
+            {label}
+          </span>
+          <span className="conf-pill">{confidenceScore}% tin cậy</span>
         </div>
 
-        <div className="nav-links">
-          <NavLink to="/" className={navClass}>
-            Trang Chủ
-          </NavLink>
+        <h3 className="history-item-title">{itemTitle}</h3>
+        <p className="history-item-guide">💡 {itemGuide}</p>
 
-          {user && (
-            <NavLink to="/scan" className={navClass}>
-              Quét AI
-            </NavLink>
-          )}
-
-          {user && (
-            <NavLink to="/history" className={navClass}>
-              Lịch Sử
-            </NavLink>
-          )}
-
-          <NavLink to="/guide" className={navClass}>
-            Hướng Dẫn
-          </NavLink>
-
-          {user?.role === "admin" && (
-            <NavLink to="/admin" className={navClass}>
-              Thống Kê
-            </NavLink>
-          )}
-        </div>
-
-        {!user ? (
-          <button
-            className="start-btn"
-            onClick={() => navigate("/login")}
-          >
-            Bắt Đầu Ngay
-          </button>
-        ) : (
-          <div className="user-box">
-              <span>
-            {user.role === "admin" ? "👑 " : "👤 "}
-            {user.name}
-            </span>
-            <button className="logout-btn" onClick={logout}>
-              Đăng xuất
+        <div className="history-card-footer">
+          <span className="eco-point-tag">+10 Eco-points</span>
+          {onDelete && (
+            <button
+              type="button"
+              className="history-delete-single-btn"
+              onClick={onDelete}
+              title="Xóa mục này"
+            >
+              <Trash2 size={15} />
             </button>
-          </div>
-        )}
-      </div>
-    </nav>
-    <div
-      className="glass-card card-interactive"
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        borderLeft: `5px solid ${cat.color}`,
-        marginBottom: "0.85rem",
-        padding: "1.1rem 1.35rem",
-        flexWrap: "wrap",
-        gap: "0.75rem",
-      }}
-    >
-      <div style={{ flex: 1, minWidth: "220px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.35rem" }}>
-          <span style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--text-main)" }}>
-            {displayName}
-          </span>
-
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.3rem",
-              fontSize: "0.72rem",
-              fontWeight: 700,
-              padding: "0.2rem 0.55rem",
-              borderRadius: "999px",
-              backgroundColor: cat.bg,
-              color: cat.color,
-              border: `1px solid ${cat.color}35`,
-            }}
-          >
-            {cat.icon}
-            {cat.label}
-          </span>
+          )}
         </div>
-
-        <p style={{ fontSize: "0.84rem", color: "var(--text-muted)", margin: 0 }}>
-          {item.guide}
-        </p>
       </div>
-
-      <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.25rem" }}>
-        <div
-          style={{
-            fontSize: "0.85rem",
-            fontWeight: 700,
-            color: cat.color,
-            background: "rgba(15, 23, 42, 0.7)",
-            padding: "0.2rem 0.6rem",
-            borderRadius: "6px",
-            border: "1px solid var(--border-color)",
-          }}
-        >
-          {item.confidence ? `${item.confidence}%` : "--"} tin cậy
-        </div>
-
-        <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-          <Calendar size={12} />
-          {formattedTime}
-        </div>
-
-        {reported ? (
-          <span style={{ fontSize: "0.72rem", color: "var(--primary-light)", display: "flex", alignItems: "center", gap: "0.25rem", marginTop: "0.2rem" }}>
-            <CheckCircle2 size={12} /> Đã báo lỗi
-          </span>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setShowReportModal(true)}
-            style={{
-              background: "transparent",
-              border: "none",
-              color: "var(--text-dim)",
-              fontSize: "0.72rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "0.25rem",
-              cursor: "pointer",
-              padding: "2px 6px",
-              borderRadius: "4px",
-              marginTop: "0.2rem",
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = "#fbbf24";
-              e.currentTarget.style.background = "rgba(245, 158, 11, 0.1)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = "var(--text-dim)";
-              e.currentTarget.style.background = "transparent";
-            }}
-            title="Báo cáo nếu kết quả nhận diện này bị sai"
-          >
-            <Flag size={11} />
-            <span>Báo lỗi AI</span>
-          </button>
-        )}
-      </div>
-
-      {/* Modal Báo Cáo Nhận Diện Sai */}
-      <ReportModal
-        isOpen={showReportModal}
-        onClose={() => setShowReportModal(false)}
-        prediction={{
-          className: item.className,
-          wasteType: item.wasteType,
-          confidence: item.confidence,
-          guide: item.guide,
-        }}
-        user={user}
-        onSuccess={() => setReported(true)}
-      />
     </div>
   );
 }
