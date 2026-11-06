@@ -52,7 +52,26 @@ import {
   Globe,
   Radio,
   SlidersHorizontal,
+  ZoomIn,
+  Eye,
+  EyeOff,
+  Maximize2,
+  ScanEye,
+  X,
+  Tag,
 } from "lucide-react";
+
+// Ảnh minh họa SVG dự phòng chất lượng cao khi ngoại tuyến
+export const FALLBACK_WASTE_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600"><rect width="600" height="600" fill="%230b1120"/><rect x="30" y="30" width="540" height="540" rx="20" fill="%231e293b" stroke="%23334155" stroke-dasharray="10 10"/><circle cx="300" cy="270" r="110" fill="%2310b981" fill-opacity="0.12"/><text x="300" y="295" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="76" text-anchor="middle" fill="%2310b981">♻️</text><text x="300" y="420" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="22" font-weight="bold" text-anchor="middle" fill="%23f8fafc">EcoSort AI Image Tensor</text><text x="300" y="452" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="14" text-anchor="middle" fill="%2394a3b8">YOLOv8 Nano Input [1, 3, 640, 640]</text></svg>`;
+
+export const getReportImage = (report) => {
+  return report?.imageUrl || FALLBACK_WASTE_SVG;
+};
+
+export const getReportBbox = (report) => {
+  if (report?.bbox) return report.bbox;
+  return { x: 22, y: 18, width: 56, height: 64 };
+};
 
 // ============================================================================
 // DỮ LIỆU MẪU & DANH MỤC CHUẨN ĐỒ ÁN YOLOV8
@@ -293,6 +312,8 @@ const DEMO_REPORTS = [
     id: "rep_demo_01",
     userId: "usr_green_citizen_01",
     userEmail: "hoangnam.eco@gmail.com",
+    imageUrl: "https://images.unsplash.com/photo-1558857563-b37cbacf6952?w=600&auto=format&fit=crop&q=80",
+    bbox: { x: 25, y: 16, width: 50, height: 68 },
     originalPrediction: {
       className: "plastic_cup",
       vietnameseName: "Ly nhựa dùng một lần",
@@ -313,6 +334,8 @@ const DEMO_REPORTS = [
     id: "rep_demo_02",
     userId: "usr_green_citizen_02",
     userEmail: "thuha.environment@hcmut.edu.vn",
+    imageUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80",
+    bbox: { x: 18, y: 15, width: 64, height: 65 },
     originalPrediction: {
       className: "cardboard_box",
       vietnameseName: "Thùng carton",
@@ -333,6 +356,8 @@ const DEMO_REPORTS = [
     id: "rep_demo_03",
     userId: "usr_green_citizen_03",
     userEmail: "trunghieu.iot@gmail.com",
+    imageUrl: "https://images.unsplash.com/photo-1584813470613-5b1c1cad3d69?w=600&auto=format&fit=crop&q=80",
+    bbox: { x: 30, y: 12, width: 40, height: 75 },
     originalPrediction: {
       className: "plastic_bottle",
       vietnameseName: "Chai nhựa",
@@ -353,6 +378,8 @@ const DEMO_REPORTS = [
     id: "rep_demo_04",
     userId: "usr_green_citizen_04",
     userEmail: "minhtri.tech@outlook.com",
+    imageUrl: "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600&auto=format&fit=crop&q=80",
+    bbox: { x: 20, y: 22, width: 60, height: 56 },
     originalPrediction: {
       className: "scrap_paper",
       vietnameseName: "Giấy vụn",
@@ -373,6 +400,8 @@ const DEMO_REPORTS = [
     id: "rep_demo_05",
     userId: "usr_green_citizen_05",
     userEmail: "anhtuan.survey@gmail.com",
+    imageUrl: "https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?w=600&auto=format&fit=crop&q=80",
+    bbox: { x: 32, y: 28, width: 36, height: 44 },
     originalPrediction: {
       className: "plastic_bottle_cap",
       vietnameseName: "Nắp chai nhựa",
@@ -487,6 +516,11 @@ export default function AdminDashboard({ user, defaultTab = "overview" }) {
   const [feedbackSearch, setFeedbackSearch] = useState("");
   const [selectedReport, setSelectedReport] = useState(null);
   const [reviewerInput, setReviewerInput] = useState("");
+
+  // Modal Soi Ảnh & Bounding Box
+  const [inspectingReport, setInspectingReport] = useState(null);
+  const [showBbox, setShowBbox] = useState(true);
+  const [inspectReviewerNote, setInspectReviewerNote] = useState("");
 
   // Dữ liệu Người Dùng Quản Trị
   const [usersList, setUsersList] = useState([]);
@@ -646,14 +680,15 @@ export default function AdminDashboard({ user, defaultTab = "overview" }) {
   // ============================================================================
   // XỬ LÝ PHẢN HỒI ACTIVE LEARNING
   // ============================================================================
-  const handleUpdateFeedbackStatus = async (reportId, newStatus) => {
+  const handleUpdateFeedbackStatus = async (reportId, newStatus, customNote = "") => {
+    const finalNote = customNote || reviewerInput;
     const updated = reports.map((rep) => {
       if (rep.id === reportId) {
         return {
           ...rep,
           status: newStatus,
           reviewerNote:
-            reviewerInput ||
+            finalNote ||
             rep.reviewerNote ||
             (newStatus === "approved" ? "Đã xác nhận đưa vào tập Retrain" : "Từ chối báo cáo"),
           reviewedAt: new Date().toISOString(),
@@ -671,7 +706,7 @@ export default function AdminDashboard({ user, defaultTab = "overview" }) {
         const repRef = doc(db, "misclassifications", reportId);
         await updateDoc(repRef, {
           status: newStatus,
-          reviewerNote: reviewerInput || (newStatus === "approved" ? "Đã duyệt Retrain" : "Từ chối"),
+          reviewerNote: finalNote || (newStatus === "approved" ? "Đã duyệt Retrain" : "Từ chối"),
           reviewedAt: new Date().toISOString(),
           reviewerEmail: user?.email || "admin@ecosort.ai",
         });
@@ -1758,138 +1793,216 @@ export default function AdminDashboard({ user, defaultTab = "overview" }) {
                       </div>
                     </div>
 
-                    {/* So sánh Đối sánh: Dự đoán AI vs Thực tế Đề xuất */}
+                    {/* So sánh Đối sánh: Ảnh Thumbnail + Dự đoán AI vs Thực tế Đề xuất */}
                     <div
                       style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-                        gap: "1rem",
+                        display: "flex",
+                        gap: "1.25rem",
+                        alignItems: "stretch",
+                        flexWrap: "wrap",
                         marginBottom: "1rem",
                       }}
                     >
-                      {/* Cột trái: YOLOv8 dự đoán */}
+                      {/* Thumbnail ảnh vật thể rác */}
                       <div
-                        style={{
-                          padding: "1rem",
-                          borderRadius: "10px",
-                          background: "rgba(15, 23, 42, 0.5)",
-                          border: "1px solid rgba(239, 68, 68, 0.2)",
+                        onClick={() => {
+                          setInspectingReport(report);
+                          setInspectReviewerNote(report.reviewerNote || "");
                         }}
+                        style={{
+                          position: "relative",
+                          width: "135px",
+                          minHeight: "135px",
+                          borderRadius: "12px",
+                          overflow: "hidden",
+                          border: "1px solid rgba(255, 255, 255, 0.12)",
+                          background: "#090d16",
+                          cursor: "pointer",
+                          flexShrink: 0,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          transition: "all 0.25s ease",
+                        }}
+                        className="card-interactive"
+                        title="Bấm để soi ảnh phóng to và bounding box YOLOv8"
                       >
-                        <div
-                          style={{
-                            fontSize: "0.75rem",
-                            color: "#f87171",
-                            fontWeight: 700,
-                            marginBottom: "0.4rem",
-                            textTransform: "uppercase",
+                        <img
+                          src={getReportImage(report)}
+                          alt={orig.vietnameseName || "Ảnh rác"}
+                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                          onError={(e) => {
+                            e.currentTarget.src = FALLBACK_WASTE_SVG;
                           }}
-                        >
-                          YOLOv8 Suy Luận Ban Đầu:
-                        </div>
+                        />
+                        {/* Bounding box thu nhỏ mô phỏng trên thumbnail */}
                         <div
                           style={{
-                            fontSize: "1.05rem",
+                            position: "absolute",
+                            top: `${getReportBbox(report).y}%`,
+                            left: `${getReportBbox(report).x}%`,
+                            width: `${getReportBbox(report).width}%`,
+                            height: `${getReportBbox(report).height}%`,
+                            border: "1.5px solid #ef4444",
+                            pointerEvents: "none",
+                            boxShadow: "0 0 6px rgba(239, 68, 68, 0.5)",
+                          }}
+                        />
+                        <div
+                          style={{
+                            position: "absolute",
+                            bottom: "6px",
+                            right: "6px",
+                            background: "rgba(15, 23, 42, 0.85)",
+                            backdropFilter: "blur(6px)",
+                            borderRadius: "6px",
+                            padding: "0.2rem 0.45rem",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.25rem",
+                            fontSize: "0.7rem",
                             fontWeight: 700,
                             color: "#ffffff",
-                            marginBottom: "0.2rem",
                           }}
                         >
-                          {orig.vietnameseName || orig.className || "Không rõ"}
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            gap: "0.5rem",
-                            alignItems: "center",
-                            fontSize: "0.8rem",
-                            color: "var(--text-muted)",
-                          }}
-                        >
-                          <span>Mã nhãn: <code>{orig.className || "n/a"}</code></span>
-                          <span>•</span>
-                          <span>Độ tin cậy: <strong>{orig.confidence ? `${orig.confidence}%` : "Chưa có"}</strong></span>
-                        </div>
-                        <div style={{ marginTop: "0.4rem" }}>
-                          <span
-                            style={{
-                              fontSize: "0.72rem",
-                              padding: "0.15rem 0.5rem",
-                              borderRadius: "4px",
-                              background:
-                                orig.wasteType === "RECYCLABLE"
-                                  ? "rgba(34, 197, 94, 0.15)"
-                                  : orig.wasteType === "HAZARDOUS"
-                                  ? "rgba(239, 68, 68, 0.15)"
-                                  : "rgba(100, 116, 139, 0.15)",
-                              color:
-                                orig.wasteType === "RECYCLABLE"
-                                  ? "#4ade80"
-                                  : orig.wasteType === "HAZARDOUS"
-                                  ? "#f87171"
-                                  : "#94a3b8",
-                            }}
-                          >
-                            Nhóm: {orig.wasteType || "UNKNOWN"}
-                          </span>
+                          <ZoomIn size={12} />
+                          <span>Soi ảnh</span>
                         </div>
                       </div>
 
-                      {/* Cột phải: Người dùng đề xuất */}
+                      {/* 2 Cột so sánh ban đầu và đề xuất */}
                       <div
                         style={{
-                          padding: "1rem",
-                          borderRadius: "10px",
-                          background: "rgba(15, 23, 42, 0.5)",
-                          border: "1px solid rgba(16, 185, 129, 0.25)",
+                          flex: "1 1 480px",
+                          display: "grid",
+                          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                          gap: "1rem",
                         }}
                       >
+                        {/* Cột trái: YOLOv8 dự đoán */}
                         <div
                           style={{
-                            fontSize: "0.75rem",
-                            color: "var(--primary-light)",
-                            fontWeight: 700,
-                            marginBottom: "0.4rem",
-                            textTransform: "uppercase",
+                            padding: "1rem",
+                            borderRadius: "10px",
+                            background: "rgba(15, 23, 42, 0.5)",
+                            border: "1px solid rgba(239, 68, 68, 0.2)",
                           }}
                         >
-                          Thực Tế Đề Xuất (Ground Truth):
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "1.05rem",
-                            fontWeight: 700,
-                            color: "#ffffff",
-                            marginBottom: "0.2rem",
-                          }}
-                        >
-                          {report.suggestedClassName || "Chưa xác định"}
-                        </div>
-                        <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                          Lý do: <strong>{report.reasonLabel || report.reason}</strong>
-                        </div>
-                        <div style={{ marginTop: "0.4rem" }}>
-                          <span
+                          <div
                             style={{
-                              fontSize: "0.72rem",
-                              padding: "0.15rem 0.5rem",
-                              borderRadius: "4px",
-                              background:
-                                report.suggestedCategory === "RECYCLABLE"
-                                  ? "rgba(34, 197, 94, 0.15)"
-                                  : report.suggestedCategory === "HAZARDOUS"
-                                  ? "rgba(239, 68, 68, 0.15)"
-                                  : "rgba(100, 116, 139, 0.15)",
-                              color:
-                                report.suggestedCategory === "RECYCLABLE"
-                                  ? "#4ade80"
-                                  : report.suggestedCategory === "HAZARDOUS"
-                                  ? "#f87171"
-                                  : "#94a3b8",
+                              fontSize: "0.75rem",
+                              color: "#f87171",
+                              fontWeight: 700,
+                              marginBottom: "0.4rem",
+                              textTransform: "uppercase",
                             }}
                           >
-                            Nhóm đề xuất: {report.suggestedCategory || "Chưa gán"}
-                          </span>
+                            YOLOv8 Suy Luận Ban Đầu:
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "1.05rem",
+                              fontWeight: 700,
+                              color: "#ffffff",
+                              marginBottom: "0.2rem",
+                            }}
+                          >
+                            {orig.vietnameseName || orig.className || "Không rõ"}
+                          </div>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "0.5rem",
+                              alignItems: "center",
+                              fontSize: "0.8rem",
+                              color: "var(--text-muted)",
+                            }}
+                          >
+                            <span>Mã nhãn: <code>{orig.className || "n/a"}</code></span>
+                            <span>•</span>
+                            <span>Độ tin cậy: <strong>{orig.confidence ? `${orig.confidence}%` : "Chưa có"}</strong></span>
+                          </div>
+                          <div style={{ marginTop: "0.4rem" }}>
+                            <span
+                              style={{
+                                fontSize: "0.72rem",
+                                padding: "0.15rem 0.5rem",
+                                borderRadius: "4px",
+                                background:
+                                  orig.wasteType === "RECYCLABLE"
+                                    ? "rgba(34, 197, 94, 0.15)"
+                                    : orig.wasteType === "HAZARDOUS"
+                                    ? "rgba(239, 68, 68, 0.15)"
+                                    : "rgba(100, 116, 139, 0.15)",
+                                color:
+                                  orig.wasteType === "RECYCLABLE"
+                                    ? "#4ade80"
+                                    : orig.wasteType === "HAZARDOUS"
+                                    ? "#f87171"
+                                    : "#94a3b8",
+                              }}
+                            >
+                              Nhóm: {orig.wasteType || "UNKNOWN"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Cột phải: Người dùng đề xuất */}
+                        <div
+                          style={{
+                            padding: "1rem",
+                            borderRadius: "10px",
+                            background: "rgba(15, 23, 42, 0.5)",
+                            border: "1px solid rgba(16, 185, 129, 0.25)",
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: "0.75rem",
+                              color: "var(--primary-light)",
+                              fontWeight: 700,
+                              marginBottom: "0.4rem",
+                              textTransform: "uppercase",
+                            }}
+                          >
+                            Thực Tế Đề Xuất (Ground Truth):
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "1.05rem",
+                              fontWeight: 700,
+                              color: "#ffffff",
+                              marginBottom: "0.2rem",
+                            }}
+                          >
+                            {report.suggestedClassName || "Chưa xác định"}
+                          </div>
+                          <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                            Lý do: <strong>{report.reasonLabel || report.reason}</strong>
+                          </div>
+                          <div style={{ marginTop: "0.4rem" }}>
+                            <span
+                              style={{
+                                fontSize: "0.72rem",
+                                padding: "0.15rem 0.5rem",
+                                borderRadius: "4px",
+                                background:
+                                  report.suggestedCategory === "RECYCLABLE"
+                                    ? "rgba(34, 197, 94, 0.15)"
+                                    : report.suggestedCategory === "HAZARDOUS"
+                                    ? "rgba(239, 68, 68, 0.15)"
+                                    : "rgba(100, 116, 139, 0.15)",
+                                color:
+                                  report.suggestedCategory === "RECYCLABLE"
+                                    ? "#4ade80"
+                                    : report.suggestedCategory === "HAZARDOUS"
+                                    ? "#f87171"
+                                    : "#94a3b8",
+                              }}
+                            >
+                              Nhóm đề xuất: {report.suggestedCategory || "Chưa gán"}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1938,6 +2051,29 @@ export default function AdminDashboard({ user, defaultTab = "overview" }) {
                         marginTop: "0.75rem",
                       }}
                     >
+                      <button
+                        onClick={() => {
+                          setInspectingReport(report);
+                          setInspectReviewerNote(report.reviewerNote || "");
+                        }}
+                        className="btn"
+                        style={{
+                          background: "rgba(59, 130, 246, 0.15)",
+                          color: "#60a5fa",
+                          border: "1px solid rgba(59, 130, 246, 0.35)",
+                          fontSize: "0.82rem",
+                          fontWeight: 600,
+                          padding: "0.45rem 0.9rem",
+                          borderRadius: "8px",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "0.4rem",
+                        }}
+                        title="Mở trình soi ảnh chuyên sâu với Bounding Box và chi tiết Tensor"
+                      >
+                        <ScanEye size={15} /> Soi Ảnh & Bounding Box
+                      </button>
+
                       {isPending ? (
                         <>
                           <button
@@ -2518,6 +2654,655 @@ export default function AdminDashboard({ user, defaultTab = "overview" }) {
           </div>
         </div>
       )}
+
+      {/* ==================================================================== */}
+      {/* MODAL SOI ẢNH CHI TIẾT & BOUNDING BOX YOLOv8 */}
+      {/* ==================================================================== */}
+      {inspectingReport &&
+        (() => {
+          const orig = inspectingReport.originalPrediction || {};
+          const isApproved = inspectingReport.status === "approved";
+          const isRejected = inspectingReport.status === "rejected";
+          const isPending = inspectingReport.status === "pending_review";
+          const bbox = getReportBbox(inspectingReport);
+
+          return (
+            <div
+              style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 9999,
+                backgroundColor: "rgba(3, 7, 18, 0.88)",
+                backdropFilter: "blur(12px)",
+                WebkitBackdropFilter: "blur(12px)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "1rem",
+                animation: "fadeIn 0.2s ease-out",
+              }}
+              onClick={() => setInspectingReport(null)}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="glass-card"
+                style={{
+                  width: "100%",
+                  maxWidth: "1040px",
+                  maxHeight: "92vh",
+                  display: "flex",
+                  flexDirection: "column",
+                  overflow: "hidden",
+                  padding: "0",
+                  borderRadius: "20px",
+                  border: "1px solid rgba(16, 185, 129, 0.35)",
+                  boxShadow:
+                    "0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 35px rgba(16, 185, 129, 0.2)",
+                }}
+              >
+                {/* Modal Header */}
+                <div
+                  style={{
+                    padding: "1.25rem 1.5rem",
+                    borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    background: "rgba(15, 23, 42, 0.9)",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                    <div
+                      style={{
+                        padding: "0.5rem",
+                        borderRadius: "10px",
+                        background: "rgba(16, 185, 129, 0.15)",
+                        color: "var(--primary-light)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <ScanEye size={20} />
+                    </div>
+                    <div>
+                      <h3
+                        style={{
+                          fontSize: "1.1rem",
+                          fontWeight: 700,
+                          color: "#ffffff",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.5rem",
+                        }}
+                      >
+                        <span>Kiểm Toán Trực Quan Báo Cáo Phân Loại AI</span>
+                        <span
+                          style={{
+                            fontSize: "0.74rem",
+                            padding: "0.15rem 0.5rem",
+                            borderRadius: "9999px",
+                            background: "rgba(59, 130, 246, 0.15)",
+                            color: "#60a5fa",
+                          }}
+                        >
+                          Active Learning
+                        </span>
+                      </h3>
+                      <div style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
+                        Mã ca: <code>#{inspectingReport.id}</code> • Gửi bởi:{" "}
+                        <strong>{inspectingReport.userEmail}</strong> •{" "}
+                        {new Date(inspectingReport.createdAt).toLocaleString("vi-VN")}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                    <button
+                      onClick={() => setInspectingReport(null)}
+                      style={{
+                        width: "34px",
+                        height: "34px",
+                        borderRadius: "8px",
+                        background: "rgba(255, 255, 255, 0.05)",
+                        color: "var(--text-muted)",
+                        border: "1px solid var(--border-color)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                      }}
+                      title="Đóng cửa sổ"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Modal Body: 2 Columns */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
+                    overflowY: "auto",
+                    padding: "1.5rem",
+                    gap: "1.5rem",
+                    flex: 1,
+                  }}
+                >
+                  {/* Cột Trái: Canvas Soi Ảnh & Bounding Box AI */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: "0.85rem",
+                          fontWeight: 700,
+                          color: "#ffffff",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.4rem",
+                        }}
+                      >
+                        <Cpu size={16} style={{ color: "var(--primary)" }} /> Ảnh Khung Hình &
+                        Bounding Box
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowBbox((prev) => !prev)}
+                        style={{
+                          padding: "0.3rem 0.75rem",
+                          borderRadius: "6px",
+                          fontSize: "0.76rem",
+                          fontWeight: 600,
+                          background: showBbox
+                            ? "rgba(16, 185, 129, 0.2)"
+                            : "rgba(30, 41, 59, 0.6)",
+                          color: showBbox ? "#34d399" : "var(--text-muted)",
+                          border: showBbox
+                            ? "1px solid rgba(16, 185, 129, 0.35)"
+                            : "1px solid var(--border-color)",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "0.35rem",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {showBbox ? <Eye size={13} /> : <EyeOff size={13} />}
+                        <span>{showBbox ? "Hiện Bounding Box" : "Ẩn Bounding Box"}</span>
+                      </button>
+                    </div>
+
+                    {/* Vùng chứa ảnh với Bounding Box */}
+                    <div
+                      style={{
+                        position: "relative",
+                        width: "100%",
+                        minHeight: "360px",
+                        maxHeight: "440px",
+                        borderRadius: "14px",
+                        overflow: "hidden",
+                        background:
+                          "radial-gradient(circle at center, #1e293b 0%, #090d16 100%)",
+                        border: "1px solid rgba(255, 255, 255, 0.12)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <img
+                        src={getReportImage(inspectingReport)}
+                        alt={orig.vietnameseName || "Vật thể rác"}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          maxHeight: "440px",
+                          objectFit: "contain",
+                          display: "block",
+                        }}
+                        onError={(e) => {
+                          e.currentTarget.src = FALLBACK_WASTE_SVG;
+                        }}
+                      />
+
+                      {/* Bounding Box Overlay của YOLOv8 */}
+                      {showBbox && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: `${bbox.y}%`,
+                            left: `${bbox.x}%`,
+                            width: `${bbox.width}%`,
+                            height: `${bbox.height}%`,
+                            border: "2px solid #ef4444",
+                            boxShadow:
+                              "0 0 15px rgba(239, 68, 68, 0.45), inset 0 0 15px rgba(239, 68, 68, 0.15)",
+                            pointerEvents: "none",
+                            animation: "pulseGlow 3s infinite ease-in-out",
+                          }}
+                        >
+                          {/* 4 Góc Corner Brackets phong cách Computer Vision */}
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: "-2px",
+                              left: "-2px",
+                              width: "10px",
+                              height: "10px",
+                              borderTop: "3px solid #ffffff",
+                              borderLeft: "3px solid #ffffff",
+                            }}
+                          />
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: "-2px",
+                              right: "-2px",
+                              width: "10px",
+                              height: "10px",
+                              borderTop: "3px solid #ffffff",
+                              borderRight: "3px solid #ffffff",
+                            }}
+                          />
+                          <div
+                            style={{
+                              position: "absolute",
+                              bottom: "-2px",
+                              left: "-2px",
+                              width: "10px",
+                              height: "10px",
+                              borderBottom: "3px solid #ffffff",
+                              borderLeft: "3px solid #ffffff",
+                            }}
+                          />
+                          <div
+                            style={{
+                              position: "absolute",
+                              bottom: "-2px",
+                              right: "-2px",
+                              width: "10px",
+                              height: "10px",
+                              borderBottom: "3px solid #ffffff",
+                              borderRight: "3px solid #ffffff",
+                            }}
+                          />
+
+                          {/* Top Label Tag của YOLO */}
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: "-26px",
+                              left: "-2px",
+                              background: "linear-gradient(90deg, #dc2626, #ef4444)",
+                              color: "#ffffff",
+                              fontSize: "0.72rem",
+                              fontWeight: 800,
+                              padding: "0.2rem 0.55rem",
+                              borderRadius: "4px 4px 0 0",
+                              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.4)",
+                              whiteSpace: "nowrap",
+                              letterSpacing: "0.02em",
+                            }}
+                          >
+                            yolov8n: {orig.className || "waste"} (
+                            {orig.confidence ? `${orig.confidence}%` : "n/a"})
+                          </div>
+
+                          {/* Bottom Ground Truth Tag */}
+                          <div
+                            style={{
+                              position: "absolute",
+                              bottom: "-25px",
+                              left: "-2px",
+                              background: "linear-gradient(90deg, #059669, #10b981)",
+                              color: "#ffffff",
+                              fontSize: "0.72rem",
+                              fontWeight: 700,
+                              padding: "0.18rem 0.55rem",
+                              borderRadius: "0 0 4px 4px",
+                              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.4)",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            Ground Truth: {inspectingReport.suggestedClassName}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Thông số kỹ thuật của ảnh */}
+                    <div
+                      style={{
+                        padding: "0.65rem 0.85rem",
+                        borderRadius: "8px",
+                        background: "rgba(15, 23, 42, 0.6)",
+                        border: "1px solid var(--border-color)",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        fontSize: "0.75rem",
+                        color: "var(--text-muted)",
+                        flexWrap: "wrap",
+                        gap: "0.5rem",
+                      }}
+                    >
+                      <span>
+                        📐 Kích thước Tensor: <strong>640 × 640 RGB</strong>
+                      </span>
+                      <span>
+                        ⚡ Độ trễ suy luận: <strong>~42ms</strong>
+                      </span>
+                      <span>
+                        🎯 Bbox:{" "}
+                        <code>
+                          [{bbox.x}%, {bbox.y}%, {bbox.width}%, {bbox.height}%]
+                        </code>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Cột Phải: Đối Soát Thẩm Định & Quyết Định Admin */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                    {/* Hộp 1: YOLOv8 Suy luận */}
+                    <div
+                      style={{
+                        padding: "1rem",
+                        borderRadius: "10px",
+                        background: "rgba(15, 23, 42, 0.6)",
+                        border: "1px solid rgba(239, 68, 68, 0.25)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: "0.75rem",
+                          color: "#f87171",
+                          fontWeight: 700,
+                          marginBottom: "0.3rem",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        YOLOv8 Suy Luận Ban Đầu:
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "1.1rem",
+                          fontWeight: 800,
+                          color: "#ffffff",
+                          marginBottom: "0.2rem",
+                        }}
+                      >
+                        {orig.vietnameseName || orig.className || "Không rõ"}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.8rem",
+                          color: "var(--text-muted)",
+                          display: "flex",
+                          gap: "0.6rem",
+                        }}
+                      >
+                        <span>
+                          Mã nhãn: <code>{orig.className || "n/a"}</code>
+                        </span>
+                        <span>•</span>
+                        <span>
+                          Độ tin cậy:{" "}
+                          <strong>{orig.confidence ? `${orig.confidence}%` : "Chưa có"}</strong>
+                        </span>
+                      </div>
+                      <div style={{ marginTop: "0.4rem" }}>
+                        <span
+                          style={{
+                            fontSize: "0.72rem",
+                            padding: "0.15rem 0.5rem",
+                            borderRadius: "4px",
+                            background:
+                              orig.wasteType === "RECYCLABLE"
+                                ? "rgba(34, 197, 94, 0.15)"
+                                : orig.wasteType === "HAZARDOUS"
+                                ? "rgba(239, 68, 68, 0.15)"
+                                : "rgba(100, 116, 139, 0.15)",
+                            color:
+                              orig.wasteType === "RECYCLABLE"
+                                ? "#4ade80"
+                                : orig.wasteType === "HAZARDOUS"
+                                ? "#f87171"
+                                : "#94a3b8",
+                          }}
+                        >
+                          Nhóm: {orig.wasteType || "UNKNOWN"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Hộp 2: Đề xuất thực tế của người dùng */}
+                    <div
+                      style={{
+                        padding: "1rem",
+                        borderRadius: "10px",
+                        background: "rgba(15, 23, 42, 0.6)",
+                        border: "1px solid rgba(16, 185, 129, 0.3)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: "0.75rem",
+                          color: "var(--primary-light)",
+                          fontWeight: 700,
+                          marginBottom: "0.3rem",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Thực Tế Đề Xuất (Ground Truth):
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "1.1rem",
+                          fontWeight: 800,
+                          color: "#ffffff",
+                          marginBottom: "0.2rem",
+                        }}
+                      >
+                        {inspectingReport.suggestedClassName || "Chưa xác định"}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.8rem",
+                          color: "var(--text-muted)",
+                          marginBottom: "0.3rem",
+                        }}
+                      >
+                        Lý do:{" "}
+                        <strong>
+                          {inspectingReport.reasonLabel || inspectingReport.reason}
+                        </strong>
+                      </div>
+                      <div>
+                        <span
+                          style={{
+                            fontSize: "0.72rem",
+                            padding: "0.15rem 0.5rem",
+                            borderRadius: "4px",
+                            background:
+                              inspectingReport.suggestedCategory === "RECYCLABLE"
+                                ? "rgba(34, 197, 94, 0.15)"
+                                : inspectingReport.suggestedCategory === "HAZARDOUS"
+                                ? "rgba(239, 68, 68, 0.15)"
+                                : "rgba(100, 116, 139, 0.15)",
+                            color:
+                              inspectingReport.suggestedCategory === "RECYCLABLE"
+                                ? "#4ade80"
+                                : inspectingReport.suggestedCategory === "HAZARDOUS"
+                                ? "#f87171"
+                                : "#94a3b8",
+                          }}
+                        >
+                          Nhóm đề xuất: {inspectingReport.suggestedCategory || "Chưa gán"}
+                        </span>
+                      </div>
+
+                      {inspectingReport.userNote && (
+                        <div
+                          style={{
+                            marginTop: "0.75rem",
+                            padding: "0.65rem 0.85rem",
+                            borderRadius: "6px",
+                            background: "rgba(30, 41, 59, 0.5)",
+                            fontSize: "0.82rem",
+                            color: "var(--text-main)",
+                            fontStyle: "italic",
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          "{inspectingReport.userNote}"
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Hộp 3: Ý Kiến Thẩm Định Của Reviewer / Admin */}
+                    <div
+                      style={{
+                        padding: "1rem",
+                        borderRadius: "10px",
+                        background: "rgba(15, 23, 42, 0.6)",
+                        border: "1px solid var(--border-color)",
+                      }}
+                    >
+                      <label
+                        style={{
+                          display: "block",
+                          fontSize: "0.8rem",
+                          fontWeight: 700,
+                          color: "#ffffff",
+                          marginBottom: "0.4rem",
+                        }}
+                      >
+                        Ghi Chú Thẩm Định Của Quản Trị Viên:
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ví dụ: Đã xác nhận tính chính xác, đưa vào tập Retrain Batch_12..."
+                        value={inspectReviewerNote}
+                        onChange={(e) => setInspectReviewerNote(e.target.value)}
+                        style={{
+                          width: "100%",
+                          padding: "0.6rem 0.85rem",
+                          background: "rgba(30, 41, 59, 0.6)",
+                          border: "1px solid var(--border-color)",
+                          borderRadius: "8px",
+                          color: "#ffffff",
+                          fontSize: "0.85rem",
+                          marginBottom: "0.5rem",
+                        }}
+                      />
+
+                      {/* Mẫu ghi chú nhanh */}
+                      <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap" }}>
+                        {[
+                          "Đã xác nhận đưa vào Retrain",
+                          "Ưu tiên ca rác nguy hại",
+                          "Chất lượng ảnh quá mờ",
+                        ].map((preset, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setInspectReviewerNote(preset)}
+                            style={{
+                              padding: "0.2rem 0.5rem",
+                              borderRadius: "4px",
+                              background: "rgba(255, 255, 255, 0.05)",
+                              color: "var(--text-muted)",
+                              border: "1px solid rgba(255, 255, 255, 0.1)",
+                              fontSize: "0.72rem",
+                              cursor: "pointer",
+                            }}
+                          >
+                            + {preset}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Hộp 4: Các nút hành động chính */}
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "0.65rem",
+                        flexWrap: "wrap",
+                        marginTop: "auto",
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await handleUpdateFeedbackStatus(
+                            inspectingReport.id,
+                            "approved",
+                            inspectReviewerNote
+                          );
+                          setInspectingReport(null);
+                        }}
+                        className="btn"
+                        style={{
+                          flex: "1 1 180px",
+                          background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                          color: "#ffffff",
+                          fontSize: "0.88rem",
+                          fontWeight: 700,
+                          padding: "0.7rem 1.2rem",
+                          borderRadius: "10px",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "0.45rem",
+                          boxShadow: "0 4px 15px rgba(16, 185, 129, 0.35)",
+                        }}
+                      >
+                        <CheckCircle2 size={18} /> Duyệt Vào Retrain
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await handleUpdateFeedbackStatus(
+                            inspectingReport.id,
+                            "rejected",
+                            inspectReviewerNote
+                          );
+                          setInspectingReport(null);
+                        }}
+                        className="btn"
+                        style={{
+                          flex: "1 1 140px",
+                          background: "rgba(239, 68, 68, 0.15)",
+                          color: "#f87171",
+                          border: "1px solid rgba(239, 68, 68, 0.35)",
+                          fontSize: "0.88rem",
+                          fontWeight: 700,
+                          padding: "0.7rem 1.2rem",
+                          borderRadius: "10px",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "0.45rem",
+                        }}
+                      >
+                        <XCircle size={18} /> Từ Chối
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
     </div>
   );
 }
