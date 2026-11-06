@@ -18,6 +18,7 @@ import Quiz from "./pages/Quiz";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
+import AdminDashboard from "./pages/AdminDashboard";
 import AdminFeedback from "./pages/AdminFeedback";
 
 /**
@@ -87,8 +88,10 @@ export default function App() {
           <Route path="/guide" element={<Guide />} />
           <Route path="/quiz" element={<Quiz user={user} />} />
           <Route path="/profile" element={<Profile user={user} />} />
-          <Route path="/admin" element={<AdminFeedback user={user} />} />
-          <Route path="/admin/feedback" element={<AdminFeedback user={user} />} />
+          <Route path="/admin" element={<AdminDashboard user={user} defaultTab="overview" />} />
+          <Route path="/admin/feedback" element={<AdminDashboard user={user} defaultTab="feedback" />} />
+          <Route path="/admin/users" element={<AdminDashboard user={user} defaultTab="users" />} />
+          <Route path="/admin/classes" element={<AdminDashboard user={user} defaultTab="classes" />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Routes>

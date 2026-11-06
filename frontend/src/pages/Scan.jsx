@@ -86,7 +86,7 @@ export default function Scan({ user }) {
 
       // 1. Gọi API AI Backend
       const predictionData = await predictWasteImage(selectedFile);
-      setResult(predictionData);
+      setResult({ ...predictionData, previewUrl });
 
       // 2. Đồng bộ kết quả vào Firestore nếu người dùng đã đăng nhập
       if (user && predictionData.type !== "UNKNOWN") {

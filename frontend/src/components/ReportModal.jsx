@@ -109,6 +109,7 @@ export default function ReportModal({ isOpen, onClose, prediction, user, onSucce
       id: `rep_${Date.now()}`,
       userId: user?.uid || "anonymous",
       userEmail: user?.email || "Khách tham quan",
+      imageUrl: prediction.previewUrl || prediction.imageUrl || null,
       originalPrediction: {
         className: currentClassName,
         wasteType: currentWasteType,
