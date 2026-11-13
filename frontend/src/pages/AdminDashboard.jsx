@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import ModelSandbox from "../components/ModelSandbox";
 import {
   collection,
   getDocs,
@@ -536,6 +537,7 @@ export default function AdminDashboard({ user, defaultTab = "overview" }) {
   const [backendLatency, setBackendLatency] = useState(42);
   const [classSearch, setClassSearch] = useState("");
   const [classFilter, setClassFilter] = useState("ALL"); // ALL | RECYCLABLE | NON_RECYCLABLE | HAZARDOUS
+  const [classSubTab, setClassSubTab] = useState("classes"); // "classes" | "sandbox"
 
   // UI Toast thông báo nhanh
   const [toastMsg, setToastMsg] = useState("");
@@ -1504,7 +1506,10 @@ export default function AdminDashboard({ user, defaultTab = "overview" }) {
             </div>
 
             <div
-              onClick={() => handleTabChange("classes")}
+              onClick={() => {
+                handleTabChange("classes");
+                setClassSubTab("classes");
+              }}
               className="glass-card card-interactive"
               style={{ padding: "1.5rem", cursor: "pointer" }}
             >
@@ -1519,6 +1524,28 @@ export default function AdminDashboard({ user, defaultTab = "overview" }) {
               </div>
               <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", lineHeight: 1.5 }}>
                 Tra cứu 22 lớp rác huấn luyện, độ chính xác mAP và quy trình xử lý chuẩn đô thị.
+              </p>
+            </div>
+
+            <div
+              onClick={() => {
+                handleTabChange("classes");
+                setClassSubTab("sandbox");
+              }}
+              className="glass-card card-interactive"
+              style={{ padding: "1.5rem", cursor: "pointer", borderLeft: "4px solid #3b82f6" }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.6rem" }}>
+                <div style={{ padding: "0.5rem", borderRadius: "10px", background: "rgba(59, 130, 246, 0.15)", color: "#60a5fa" }}>
+                  <Cpu size={20} />
+                </div>
+                <div>
+                  <h4 style={{ fontSize: "0.95rem", fontWeight: 700 }}>Trình Thử Nghiệm Sandbox</h4>
+                  <div style={{ fontSize: "0.76rem", color: "#60a5fa", fontWeight: 600 }}>Live YOLOv8 Inference</div>
+                </div>
+              </div>
+              <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", lineHeight: 1.5 }}>
+                Thử nghiệm tức thời nhận diện ảnh mẫu và kiểm tra phản ứng của thanh trượt Confidence Threshold.
               </p>
             </div>
           </div>
@@ -2373,213 +2400,349 @@ export default function AdminDashboard({ user, defaultTab = "overview" }) {
       )}
 
       {/* ==================================================================== */}
-      {/* TAB 4: 22 LỚP RÁC YOLOV8 & NGƯỠNG CONFIDENCE */}
+      {/* TAB 4: 22 LỚP RÁC YOLOV8 & TRÌNH THỬ NGHIỆM SANDBOX */}
       {/* ==================================================================== */}
       {activeTab === "classes" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-          {/* Confidence Slider Card */}
+          {/* Sub-tabs điều hướng: 22 Lớp Rác vs Trình Thử Nghiệm Sandbox */}
           <div
-            className="glass-card"
             style={{
-              padding: "1.5rem",
-              borderRadius: "14px",
               display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: "1.25rem",
-              background: "linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6))",
-              border: "1px solid rgba(16, 185, 129, 0.3)",
+              gap: "0.5rem",
+              background: "rgba(15, 23, 42, 0.75)",
+              padding: "0.4rem",
+              borderRadius: "12px",
+              border: "1px solid var(--border-color)",
+              width: "fit-content",
             }}
           >
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.3rem" }}>
-                <SlidersHorizontal size={18} style={{ color: "var(--primary)" }} />
-                <h3 style={{ fontSize: "1.05rem", fontWeight: 700 }}>
-                  Ngưỡng Tin Cậy Nhận Diện (Confidence Threshold)
-                </h3>
-              </div>
-              <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", maxWidth: "560px" }}>
-                Các bounding box có điểm xác suất thấp hơn ngưỡng này sẽ tự động bị loại bỏ để giảm nhiễu (False Positives) khi suy luận.
-              </p>
-            </div>
+            <button
+              type="button"
+              onClick={() => setClassSubTab("classes")}
+              style={{
+                padding: "0.5rem 1rem",
+                borderRadius: "8px",
+                fontSize: "0.85rem",
+                fontWeight: 600,
+                background:
+                  classSubTab === "classes" ? "rgba(16, 185, 129, 0.25)" : "transparent",
+                color: classSubTab === "classes" ? "#34d399" : "var(--text-muted)",
+                border:
+                  classSubTab === "classes"
+                    ? "1px solid rgba(16, 185, 129, 0.4)"
+                    : "1px solid transparent",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.4rem",
+                transition: "all 0.2s",
+              }}
+            >
+              <Layers size={16} /> Danh Mục 22 Lớp Rác
+            </button>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-              <input
-                type="range"
-                min="0.10"
-                max="0.80"
-                step="0.05"
-                value={confidenceThreshold}
-                onChange={(e) => handleConfidenceChange(e.target.value)}
-                style={{ width: "160px", accentColor: "#10b981", cursor: "pointer" }}
-              />
-              <span
+            <button
+              type="button"
+              onClick={() => setClassSubTab("sandbox")}
+              style={{
+                padding: "0.5rem 1rem",
+                borderRadius: "8px",
+                fontSize: "0.85rem",
+                fontWeight: 600,
+                background:
+                  classSubTab === "sandbox" ? "rgba(59, 130, 246, 0.25)" : "transparent",
+                color: classSubTab === "sandbox" ? "#60a5fa" : "var(--text-muted)",
+                border:
+                  classSubTab === "sandbox"
+                    ? "1px solid rgba(59, 130, 246, 0.4)"
+                    : "1px solid transparent",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.4rem",
+                transition: "all 0.2s",
+              }}
+            >
+              <Cpu size={16} /> 🧪 Trình Thử Nghiệm Sandbox
+            </button>
+          </div>
+
+          {/* Sub-tab 1: Model Sandbox Component */}
+          {classSubTab === "sandbox" && (
+            <ModelSandbox
+              currentThreshold={confidenceThreshold}
+              onThresholdChange={handleConfidenceChange}
+            />
+          )}
+
+          {/* Sub-tab 2: Danh Mục 22 Lớp Rác Chuẩn */}
+          {classSubTab === "classes" && (
+            <>
+              {/* Confidence Slider Card */}
+              <div
+                className="glass-card"
                 style={{
-                  fontSize: "1.1rem",
-                  fontWeight: 800,
-                  color: "#10b981",
-                  minWidth: "50px",
-                  textAlign: "right",
+                  padding: "1.5rem",
+                  borderRadius: "14px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: "1.25rem",
+                  background:
+                    "linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6))",
+                  border: "1px solid rgba(16, 185, 129, 0.3)",
                 }}
               >
-                {(confidenceThreshold * 100).toFixed(0)}%
-              </span>
-            </div>
-          </div>
-
-          {/* Toolbar Lọc Nhóm Lớp Rác */}
-          <div
-            className="glass-card"
-            style={{
-              padding: "1.25rem",
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: "1rem",
-            }}
-          >
-            <div style={{ position: "relative", flex: "1 1 280px" }}>
-              <Search
-                size={18}
-                style={{
-                  position: "absolute",
-                  left: "14px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "var(--text-muted)",
-                }}
-              />
-              <input
-                type="text"
-                placeholder="Tìm mã nhãn YOLO, tên tiếng Việt..."
-                value={classSearch}
-                onChange={(e) => setClassSearch(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "0.65rem 1rem 0.65rem 2.6rem",
-                  background: "rgba(15, 23, 42, 0.6)",
-                  border: "1px solid var(--border-color)",
-                  borderRadius: "10px",
-                  color: "#ffffff",
-                  fontSize: "0.88rem",
-                }}
-              />
-            </div>
-
-            <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
-              {[
-                { id: "ALL", label: "Tất cả (22 lớp)" },
-                { id: "RECYCLABLE", label: "5 Tái Chế", color: "#10b981" },
-                { id: "NON_RECYCLABLE", label: "11 Sinh Hoạt", color: "#94a3b8" },
-                { id: "HAZARDOUS", label: "6 Nguy Hại", color: "#ef4444" },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setClassFilter(tab.id)}
-                  style={{
-                    padding: "0.5rem 0.9rem",
-                    borderRadius: "8px",
-                    fontSize: "0.82rem",
-                    fontWeight: 600,
-                    background:
-                      classFilter === tab.id
-                        ? "rgba(16, 185, 129, 0.2)"
-                        : "rgba(30, 41, 59, 0.5)",
-                    color: classFilter === tab.id ? "var(--primary-light)" : "var(--text-muted)",
-                    border:
-                      classFilter === tab.id
-                        ? "1px solid rgba(16, 185, 129, 0.4)"
-                        : "1px solid transparent",
-                    cursor: "pointer",
-                    transition: "all 0.2s",
-                  }}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Lưới 22 Lớp Rác */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-              gap: "1.25rem",
-            }}
-          >
-            {filteredClasses.map((item) => {
-              const isRecyclable = item.category === "RECYCLABLE";
-              const isHazardous = item.category === "HAZARDOUS";
-
-              return (
-                <div
-                  key={item.id}
-                  className="glass-card"
-                  style={{
-                    padding: "1.25rem",
-                    borderRadius: "12px",
-                    borderLeft: `4px solid ${item.color}`,
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.5rem" }}>
-                      <div>
-                        <h4 style={{ fontSize: "1.05rem", fontWeight: 700, color: "#ffffff", marginBottom: "0.15rem" }}>
-                          {item.name}
-                        </h4>
-                        <code style={{ fontSize: "0.76rem", color: "var(--text-muted)" }}>
-                          id: {item.id}
-                        </code>
-                      </div>
-                      <span
-                        style={{
-                          fontSize: "0.72rem",
-                          fontWeight: 700,
-                          padding: "0.2rem 0.55rem",
-                          borderRadius: "4px",
-                          background: isRecyclable
-                            ? "rgba(16, 185, 129, 0.15)"
-                            : isHazardous
-                            ? "rgba(239, 68, 68, 0.15)"
-                            : "rgba(148, 163, 184, 0.15)",
-                          color: item.color,
-                        }}
-                      >
-                        {item.group}
-                      </span>
-                    </div>
-
-                    <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: "0.75rem", lineHeight: 1.5 }}>
-                      {item.description}
-                    </p>
-                  </div>
-
+                <div>
                   <div
                     style={{
-                      padding: "0.6rem 0.85rem",
-                      borderRadius: "8px",
-                      background: "rgba(15, 23, 42, 0.5)",
-                      border: "1px solid rgba(255, 255, 255, 0.05)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                      marginBottom: "0.3rem",
                     }}
                   >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.3rem" }}>
-                      <span style={{ fontSize: "0.74rem", color: "var(--text-muted)" }}>mAP@50 Benchmark:</span>
-                      <strong style={{ fontSize: "0.82rem", color: item.color }}>{item.mAP50}%</strong>
-                    </div>
-                    <div style={{ fontSize: "0.76rem", color: "var(--text-dim)", lineHeight: 1.4 }}>
-                      💡 {item.action}
-                    </div>
+                    <SlidersHorizontal size={18} style={{ color: "var(--primary)" }} />
+                    <h3 style={{ fontSize: "1.05rem", fontWeight: 700 }}>
+                      Ngưỡng Tin Cậy Nhận Diện (Confidence Threshold)
+                    </h3>
                   </div>
+                  <p
+                    style={{
+                      fontSize: "0.82rem",
+                      color: "var(--text-muted)",
+                      maxWidth: "560px",
+                    }}
+                  >
+                    Các bounding box có điểm xác suất thấp hơn ngưỡng này sẽ tự động bị loại bỏ
+                    để giảm nhiễu (False Positives) khi suy luận.
+                  </p>
                 </div>
-              );
-            })}
-          </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                  <input
+                    type="range"
+                    min="0.10"
+                    max="0.80"
+                    step="0.05"
+                    value={confidenceThreshold}
+                    onChange={(e) => handleConfidenceChange(e.target.value)}
+                    style={{ width: "160px", accentColor: "#10b981", cursor: "pointer" }}
+                  />
+                  <span
+                    style={{
+                      fontSize: "1.1rem",
+                      fontWeight: 800,
+                      color: "#10b981",
+                      minWidth: "50px",
+                      textAlign: "right",
+                    }}
+                  >
+                    {(confidenceThreshold * 100).toFixed(0)}%
+                  </span>
+                </div>
+              </div>
+
+              {/* Toolbar Lọc Nhóm Lớp Rác */}
+              <div
+                className="glass-card"
+                style={{
+                  padding: "1.25rem",
+                  display: "flex",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "1rem",
+                }}
+              >
+                <div style={{ position: "relative", flex: "1 1 280px" }}>
+                  <Search
+                    size={18}
+                    style={{
+                      position: "absolute",
+                      left: "14px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      color: "var(--text-muted)",
+                    }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Tìm mã nhãn YOLO, tên tiếng Việt..."
+                    value={classSearch}
+                    onChange={(e) => setClassSearch(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "0.65rem 1rem 0.65rem 2.6rem",
+                      background: "rgba(15, 23, 42, 0.6)",
+                      border: "1px solid var(--border-color)",
+                      borderRadius: "10px",
+                      color: "#ffffff",
+                      fontSize: "0.88rem",
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+                  {[
+                    { id: "ALL", label: "Tất cả (22 lớp)" },
+                    { id: "RECYCLABLE", label: "5 Tái Chế", color: "#10b981" },
+                    { id: "NON_RECYCLABLE", label: "11 Sinh Hoạt", color: "#94a3b8" },
+                    { id: "HAZARDOUS", label: "6 Nguy Hại", color: "#ef4444" },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setClassFilter(tab.id)}
+                      style={{
+                        padding: "0.5rem 0.9rem",
+                        borderRadius: "8px",
+                        fontSize: "0.82rem",
+                        fontWeight: 600,
+                        background:
+                          classFilter === tab.id
+                            ? "rgba(16, 185, 129, 0.2)"
+                            : "rgba(30, 41, 59, 0.5)",
+                        color:
+                          classFilter === tab.id
+                            ? "var(--primary-light)"
+                            : "var(--text-muted)",
+                        border:
+                          classFilter === tab.id
+                            ? "1px solid rgba(16, 185, 129, 0.4)"
+                            : "1px solid transparent",
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Lưới 22 Lớp Rác */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+                  gap: "1.25rem",
+                }}
+              >
+                {filteredClasses.map((item) => {
+                  const isRecyclable = item.category === "RECYCLABLE";
+                  const isHazardous = item.category === "HAZARDOUS";
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="glass-card"
+                      style={{
+                        padding: "1.25rem",
+                        borderRadius: "12px",
+                        borderLeft: `4px solid ${item.color}`,
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "flex-start",
+                            marginBottom: "0.5rem",
+                          }}
+                        >
+                          <div>
+                            <h4
+                              style={{
+                                fontSize: "1.05rem",
+                                fontWeight: 700,
+                                color: "#ffffff",
+                                marginBottom: "0.15rem",
+                              }}
+                            >
+                              {item.name}
+                            </h4>
+                            <code
+                              style={{ fontSize: "0.76rem", color: "var(--text-muted)" }}
+                            >
+                              id: {item.id}
+                            </code>
+                          </div>
+                          <span
+                            style={{
+                              fontSize: "0.72rem",
+                              fontWeight: 700,
+                              padding: "0.2rem 0.55rem",
+                              borderRadius: "4px",
+                              background: isRecyclable
+                                ? "rgba(16, 185, 129, 0.15)"
+                                : isHazardous
+                                ? "rgba(239, 68, 68, 0.15)"
+                                : "rgba(148, 163, 184, 0.15)",
+                              color: item.color,
+                            }}
+                          >
+                            {item.group}
+                          </span>
+                        </div>
+
+                        <p
+                          style={{
+                            fontSize: "0.82rem",
+                            color: "var(--text-muted)",
+                            marginBottom: "0.75rem",
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          {item.description}
+                        </p>
+                      </div>
+
+                      <div
+                        style={{
+                          padding: "0.6rem 0.85rem",
+                          borderRadius: "8px",
+                          background: "rgba(15, 23, 42, 0.5)",
+                          border: "1px solid rgba(255, 255, 255, 0.05)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginBottom: "0.3rem",
+                          }}
+                        >
+                          <span
+                            style={{ fontSize: "0.74rem", color: "var(--text-muted)" }}
+                          >
+                            mAP@50 Benchmark:
+                          </span>
+                          <strong style={{ fontSize: "0.82rem", color: item.color }}>
+                            {item.mAP50}%
+                          </strong>
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "0.76rem",
+                            color: "var(--text-dim)",
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          💡 {item.action}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
       )}
 
