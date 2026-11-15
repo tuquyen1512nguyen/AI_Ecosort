@@ -13,7 +13,8 @@ import {
   Sparkles,
   Info,
   Loader2,
-  Flag
+  Flag,
+  MapPin
 } from "lucide-react";
 import ReportModal from "./ReportModal";
 
@@ -422,6 +423,25 @@ export default function ResultCard({ result, loading, onReset, user }) {
             >
               <BookOpen size={16} />
               Tra Cứu Thêm
+            </button>
+          </Link>
+
+          <Link to={`/map?type=${type || "ALL"}`}>
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{
+                padding: "0.5rem 0.9rem",
+                fontSize: "0.85rem",
+                borderRadius: "8px",
+                color: "var(--primary-light)",
+                borderColor: "rgba(16, 185, 129, 0.35)",
+                background: "rgba(16, 185, 129, 0.08)",
+              }}
+              title="Tìm trạm thu gom / điểm nộp rác gần nhất trên EcoMap"
+            >
+              <MapPin size={16} />
+              <span>Tìm Trạm Nộp Rác</span>
             </button>
           </Link>
 

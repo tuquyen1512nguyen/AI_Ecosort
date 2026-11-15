@@ -15,7 +15,8 @@ import {
   X,
   User,
   Trophy,
-  ShieldCheck
+  ShieldCheck,
+  MapPin
 } from "lucide-react";
 
 /**
@@ -37,6 +38,7 @@ export default function Navbar({ user }) {
 
   const navLinks = [
     { to: "/scan", label: "Quét Rác AI", icon: <Scan size={18} /> },
+    { to: "/map", label: "Bản Đồ Trạm", icon: <MapPin size={18} /> },
     { to: "/guide", label: "Cẩm Nang", icon: <BookOpen size={18} /> },
     { to: "/quiz", label: "Trắc Nghiệm", icon: <Trophy size={18} /> },
     { to: "/history", label: "Lịch Sử", icon: <History size={18} /> },
