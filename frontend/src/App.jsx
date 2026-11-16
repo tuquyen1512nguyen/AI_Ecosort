@@ -23,6 +23,10 @@ import "./App.css";
 import Quiz from "./pages/Quiz";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Profile from "./pages/Profile";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminFeedback from "./pages/AdminFeedback";
+import EcoMap from "./pages/EcoMap";
 
 /**
  * Ứng Dụng Chính - App Router & Layout Shell
@@ -108,7 +112,13 @@ export default function App() {
           <Route path="/history" element={<History user={user} />} />
           <Route path="/statistics" element={<Statistics user={user} />} />
           <Route path="/guide" element={<Guide />} />
+          <Route path="/map" element={<EcoMap user={user} />} />
           <Route path="/quiz" element={<Quiz user={user} />} />
+          <Route path="/profile" element={<Profile user={user} />} />
+          <Route path="/admin" element={<AdminDashboard user={user} defaultTab="overview" />} />
+          <Route path="/admin/feedback" element={<AdminDashboard user={user} defaultTab="feedback" />} />
+          <Route path="/admin/users" element={<AdminDashboard user={user} defaultTab="users" />} />
+          <Route path="/admin/classes" element={<AdminDashboard user={user} defaultTab="classes" />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Routes>
@@ -168,10 +178,13 @@ export default function App() {
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", fontSize: "0.85rem" }}>
                 <Link to="/scan" style={{ color: "var(--text-muted)" }}>Quét Rác Qua Camera / Ảnh</Link>
+                <Link to="/map" style={{ color: "var(--text-muted)" }}>Bản Đồ Trạm Thu Gom (EcoMap)</Link>
                 <Link to="/guide" style={{ color: "var(--text-muted)" }}>Bách Khoa 22 Loại Rác</Link>
                 <Link to="/quiz" style={{ color: "var(--text-muted)" }}>Trắc Nghiệm Sống Xanh</Link>
                 <Link to="/statistics" style={{ color: "var(--text-muted)" }}>Thống Kê Điểm Sống Xanh</Link>
                 <Link to="/history" style={{ color: "var(--text-muted)" }}>Lịch Sử Cá Nhân</Link>
+                <Link to="/profile" style={{ color: "var(--text-muted)" }}>Hồ Sơ Sống Xanh</Link>
+                <Link to="/admin" style={{ color: "var(--primary-light)", fontWeight: 600 }}>Quản Trị AI (Active Learning)</Link>
               </div>
             </div>
 

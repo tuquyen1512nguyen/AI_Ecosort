@@ -17,7 +17,9 @@ import {
   Menu, 
   X,
   User,
-  Trophy
+  Trophy,
+  ShieldCheck,
+  MapPin
 } from "lucide-react";
 
 /**
@@ -43,10 +45,12 @@ export default function Navbar({ user }) {
 
   const navLinks = [
     { to: "/scan", label: "Quét Rác AI", icon: <Scan size={18} /> },
+    { to: "/map", label: "Bản Đồ Trạm", icon: <MapPin size={18} /> },
     { to: "/guide", label: "Cẩm Nang", icon: <BookOpen size={18} /> },
     { to: "/quiz", label: "Trắc Nghiệm", icon: <Trophy size={18} /> },
     { to: "/history", label: "Lịch Sử", icon: <History size={18} /> },
     { to: "/statistics", label: "Thống Kê", icon: <BarChart3 size={18} /> },
+    { to: "/admin", label: "Quản Trị AI", icon: <ShieldCheck size={18} /> },
   ];
 
   return (
@@ -159,8 +163,8 @@ export default function Navbar({ user }) {
                 AI
               </span>
             </div>
-            <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", marginTop: "-2px" }}>
-              Smart Waste Sorter
+            <div className="brand-subtitle" style={{ fontSize: "0.68rem", color: "var(--text-muted)", marginTop: "-2px" }}>
+              Phân Loại Rác Thông Minh
             </div>
           </div>
         </Link>
@@ -174,18 +178,11 @@ export default function Navbar({ user }) {
           }}
           className="desktop-nav-container"
         >
-          <style>{`
-            @media (min-width: 768px) {
-              .desktop-nav-container { display: flex !important; }
-              .desktop-auth-container { display: flex !important; }
-              .mobile-toggle-btn { display: none !important; }
-            }
-          `}</style>
-
           {navLinks.map((link) => (
             <NavLink
               key={link.to}
               to={link.to}
+              className="desktop-nav-link"
               style={({ isActive }) => ({
                 display: "inline-flex",
                 alignItems: "center",
@@ -213,46 +210,63 @@ export default function Navbar({ user }) {
         >
           {user ? (
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              <div
+              <Link
+                to="/profile"
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "0.4rem 0.8rem",
-                  background: "rgba(30, 41, 59, 0.6)",
-                  border: "1px solid var(--border-color)",
+                  gap: "0.55rem",
+                  padding: "0.4rem 0.85rem",
+                  background: "rgba(30, 41, 59, 0.75)",
+                  border: "1px solid rgba(16, 185, 129, 0.3)",
                   borderRadius: "9999px",
+                  textDecoration: "none",
+                  transition: "all 0.2s ease",
+                  cursor: "pointer",
                 }}
+                className="navbar-profile-pill"
+                title="Xem và chỉnh sửa hồ sơ sống xanh của bạn"
               >
                 <div
                   style={{
-                    width: "24px",
-                    height: "24px",
+                    width: "28px",
+                    height: "28px",
                     borderRadius: "50%",
                     background: "linear-gradient(135deg, #10b981, #06b6d4)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: "0.75rem",
-                    fontWeight: "bold",
+                    fontSize: "0.95rem",
                     color: "#ffffff",
-                  }}
-                >
-                  {(user.displayName || user.email || "U")[0].toUpperCase()}
-                </div>
-                <span
-                  style={{
-                    fontSize: "0.82rem",
-                    color: "var(--text-main)",
-                    maxWidth: "140px",
                     overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
+                    boxShadow: "0 0 10px rgba(16, 185, 129, 0.3)",
                   }}
                 >
-                  {user.displayName || user.email?.split("@")[0]}
-                </span>
-              </div>
+                  {user.photoURL && user.photoURL.startsWith("http") ? (
+                    <img src={user.photoURL} alt="Avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    localStorage.getItem("ecosort_user_avatar") || (user.displayName || user.email || "U")[0].toUpperCase()
+                  )}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", textAlign: "left" }}>
+                  <span
+                    style={{
+                      fontSize: "0.84rem",
+                      fontWeight: 600,
+                      color: "#f8fafc",
+                      maxWidth: "125px",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {user.displayName || user.email?.split("@")[0]}
+                  </span>
+                  <span style={{ fontSize: "0.68rem", color: "var(--primary-light)", marginTop: "-2px" }}>
+                    Hồ Sơ • Cài Đặt
+                  </span>
+                </div>
+              </Link>
 
               <button
                 onClick={handleLogout}
@@ -324,6 +338,7 @@ export default function Navbar({ user }) {
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div
+          className="mobile-nav-drawer"
           style={{
             background: "rgba(15, 23, 42, 0.98)",
             borderBottom: "1px solid var(--border-color)",
@@ -365,9 +380,32 @@ export default function Navbar({ user }) {
           >
             {user ? (
               <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                <div style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
-                  Đang đăng nhập: <strong>{user.email}</strong>
-                </div>
+                <Link
+                  to="/profile"
+                  onClick={() => setMobileMenuOpen(false)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    padding: "0.75rem 1rem",
+                    borderRadius: "8px",
+                    background: "rgba(16, 185, 129, 0.15)",
+                    border: "1px solid rgba(16, 185, 129, 0.35)",
+                    color: "#ffffff",
+                    textDecoration: "none",
+                  }}
+                >
+                  <User size={20} style={{ color: "var(--primary)" }} />
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: "0.95rem" }}>
+                      {user.displayName || user.email?.split("@")[0]}
+                    </div>
+                    <div style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
+                      Xem & Chỉnh Sửa Hồ Sơ Sống Xanh
+                    </div>
+                  </div>
+                </Link>
+
                 <button
                   onClick={handleLogout}
                   style={{

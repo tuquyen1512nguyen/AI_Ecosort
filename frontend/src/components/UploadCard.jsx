@@ -277,11 +277,7 @@ export default function UploadCard({ onFileSelect, previewUrl, selectedFileName 
         </div>
 
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
-            gap: "0.6rem",
-          }}
+          className="sample-cards-grid"
         >
           <button
             type="button"

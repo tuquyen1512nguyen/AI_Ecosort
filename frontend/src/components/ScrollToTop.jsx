@@ -58,6 +58,7 @@ export default function ScrollToTop() {
 
   return (
     <div
+      className="scroll-to-top-container"
       style={{
         position: "fixed",
         bottom: "28px",
