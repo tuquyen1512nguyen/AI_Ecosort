@@ -149,4 +149,4 @@ async def predict_waste_image(upload_file, conf_threshold: float = None):
         "vietnamese_name": primary["vietnamese_name"],
         "total_detected": len(detections),
         "detections": detections
-    }
+    }

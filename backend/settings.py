@@ -28,10 +28,9 @@ RECYCLABLE = [
     "can",
     "plastic_bottle_cap",
     "plastic_bottle",
-    "reuseable_paper",
+    "reuseable_paper"
 ]
 
-# 11 Nhãn rác Không tái chế / Sinh hoạt
 NON_RECYCLABLE = [
     "plastic_bag",
     "scrap_paper",
@@ -43,10 +42,9 @@ NON_RECYCLABLE = [
     "plastic_cup_lid",
     "scrap_plastic",
     "cardboard_bowl",
-    "plastic_cultery",
+    "plastic_cultery"
 ]
 
-# 6 Nhãn rác Nguy hại
 HAZARDOUS = [
     "battery",
     "chemical_spray_can",

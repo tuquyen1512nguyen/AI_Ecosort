@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import { 
   Scan, 
@@ -14,6 +13,22 @@ import {
   Trophy
 } from "lucide-react";
 
+export default function Home() {
+  return (
+    <>
+      <section className="hero">
+        <div className="hero-text">
+          <div className="badge">🤖 TRÍ TUỆ NHÂN TẠO THẾ HỆ MỚI 2026</div>
+
+          <h1>
+            Phân Loại Rác <br />
+            <span>Thông Minh</span> Với <br />
+            Công Nghệ AI
+          </h1>
+
+          <p>
+            EcoSort AI sử dụng thị giác máy tính để nhận diện và phân loại rác
+            thải chính xác trong vài giây.
 /**
  * Trang Chủ EcoSort AI - Modern Hero & Interactive Features
  */
@@ -126,6 +141,11 @@ export default function Home() {
           <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", maxWidth: "580px", margin: "0 auto" }}>
             Chỉ với chiếc điện thoại hoặc máy tính, bạn đã có trợ thủ phân loại rác thông minh
           </p>
+
+          <div className="hero-actions">
+            <Link to="/scan" className="primary-link">📷 Trải Nghiệm Quét AI</Link>
+            <a href="#features" className="secondary-link">Tìm Hiểu Thêm</a>
+          </div>
         </div>
 
         <div className="steps-grid">
@@ -249,6 +269,7 @@ export default function Home() {
             Phân loại đúng ngay từ nguồn giúp tăng 80% tỷ lệ thu hồi tái chế của đô thị
           </p>
         </div>
+      </section>
 
         <div className="waste-groups-grid">
           {/* Recyclable */}
@@ -429,6 +450,6 @@ export default function Home() {
           </button>
         </Link>
       </section>
-    </div>
+    </>
   );
 }
