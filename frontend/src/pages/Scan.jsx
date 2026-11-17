@@ -1,14 +1,4 @@
-<<<<<<< HEAD
-/**
- * @file Scan.jsx
- * @description Trang quét và phân loại rác thông minh ứng dụng YOLOv8 AI.
- * Hỗ trợ tải tệp ảnh từ máy, kéo thả hoặc chụp trực tiếp từ webcam/camera điện thoại,
- * tự động lưu kết quả vào LocalStorage và Firebase Firestore.
- */
-import { useRef, useState } from "react";
-=======
 import { useEffect, useRef, useState } from "react";
->>>>>>> dece04a (update)
 import { Link } from "react-router-dom";
 import Webcam from "react-webcam";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
@@ -27,18 +17,12 @@ import {
   Check,
   Zap,
   Award,
-<<<<<<< HEAD
-  Flag
-=======
-  HelpCircle,
-  Flag,
+Flag,
   Volume2,
-  VolumeX,
   Square
->>>>>>> dece04a (update)
 } from "lucide-react";
 
-import { predictWasteImage } from "../api/wasteApi";
+import { predictWasteImage } from "../api/wasteAPI";
 import { db } from "../firebase";
 import ReportModal from "../components/ReportModal";
 
@@ -210,13 +194,10 @@ export default function Scan({ user }) {
   };
 
   const resetScan = () => {
-<<<<<<< HEAD
+stopSpeaking();
     if (preview && preview.startsWith("blob:")) {
       URL.revokeObjectURL(preview);
     }
-=======
-    stopSpeaking();
->>>>>>> dece04a (update)
     setFile(null);
     setPreview(null);
     setResult(null);
