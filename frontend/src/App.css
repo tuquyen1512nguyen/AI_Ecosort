@@ -3757,3 +3757,94 @@ button, input, select, textarea {
     min-width: 600px;
   }
 }
+/* =========================================================
+   TEXT TO SPEECH (TTS) & SPEAKER BUTTON STYLES
+   ========================================================= */
+.result-title-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.result-title-left h2 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.speaker-btn-icon-only {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  background: var(--primary-surface);
+  color: var(--primary-dark);
+  border: 1.5px solid var(--primary-light);
+  border-radius: 50%;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.speaker-btn-icon-only:hover {
+  background: var(--primary-light);
+  border-color: var(--primary);
+  transform: scale(1.06);
+}
+
+.speaker-btn-icon-only:active {
+  transform: scale(0.96);
+}
+
+.speaker-btn-icon-only.is-speaking {
+  background: #10b981;
+  color: #ffffff;
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+  animation: speaker-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes speaker-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(16, 185, 129, 0.1);
+  }
+}
+
+/* Sound wave animation in icon-only speaker button */
+.speaker-wave-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+}
+
+.speaker-wave-bars span {
+  display: block;
+  width: 2px;
+  background-color: currentColor;
+  border-radius: 2px;
+  animation: wave-bar 0.9s ease-in-out infinite;
+}
+
+.speaker-wave-bars span:nth-child(1) { height: 5px; animation-delay: 0.1s; }
+.speaker-wave-bars span:nth-child(2) { height: 12px; animation-delay: 0.3s; }
+.speaker-wave-bars span:nth-child(3) { height: 7px; animation-delay: 0.2s; }
+.speaker-wave-bars span:nth-child(4) { height: 13px; animation-delay: 0.4s; }
+
+@keyframes wave-bar {
+  0%, 100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}

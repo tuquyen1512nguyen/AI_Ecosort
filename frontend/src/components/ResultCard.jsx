@@ -1,18 +1,3 @@
-/**
- * @file ResultCard.jsx
- * @description Thẻ hiển thị kết quả phân tích AI chi tiết sau khi nhận diện rác thành công.
- * Hiển thị nhãn rác, nhóm phân loại (Tái chế / Sinh hoạt / Nguy hại), thanh đo độ tự tin (Confidence Meter),
- * thùng rác chỉ định, hướng dẫn xử lý môi trường và các nút hành động điều hướng.
- * 
- * @param {Object} props
- * @param {Object} props.result Dữ liệu kết quả trả về từ API AI
- * @param {string} props.result.class Tên đối tượng rác nhận diện được
- * @param {string} props.result.type Loại rác (RECYCLABLE, NON_RECYCLABLE, HAZARDOUS)
- * @param {number} props.result.confidence Độ tin cậy tính theo phần trăm (0 - 100)
- * @param {string} props.result.guide Hướng dẫn xử lý môi trường
- * @param {Function} props.onReset Hàm đặt lại trạng thái để quét ảnh tiếp theo
- * @param {Function} props.onReport Hàm mở modal báo cáo AI nhận diện sai
- */
 import { Recycle, Trash2, Biohazard, ShieldCheck, Check, Award, Camera, Flag } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -27,9 +12,66 @@ export default function ResultCard({ result, onReset, onReport }) {
   const binName = isRecyclable
     ? "Thùng Xanh Lá (Tái Chế)"
     : isHazardous
-    ? "Thùng Đỏ (Rác Nguy Hại)"
-    : "Thùng Xám / Thường";
+      ? "Thùng Đỏ (Rác Nguy Hại)"
+      : "Thùng Xám / Thường";
   const binColor = isRecyclable ? "#10b981" : isHazardous ? "#ef4444" : "#64748b";
+
+  // TTS State
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [ttsSupported, setTtsSupported] = useState(true);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      setTtsSupported(false);
+    }
+  }, []);
+
+  const stopSpeaking = () => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    setIsSpeaking(false);
+  };
+
+  useEffect(() => {
+    return () => {
+      stopSpeaking();
+    };
+  }, []);
+
+  const speak = () => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      setTtsSupported(false);
+      return;
+    }
+
+    if (isSpeaking) {
+      stopSpeaking();
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    // Nội dung đọc theo thứ tự: tên loại rác -> thùng rác chỉ định -> hướng dẫn xử lý
+    const textToSpeak = `Đây là ${catTitle.toLowerCase()}. Hãy bỏ vào ${binName}. ${result.guide || ""}`;
+
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    utterance.lang = "vi-VN";
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+
+    const voices = window.speechSynthesis.getVoices();
+    const viVoice = voices.find((v) => v.lang === "vi-VN" || v.lang.startsWith("vi"));
+    if (viVoice) {
+      utterance.voice = viVoice;
+    }
+
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+
+    window.speechSynthesis.speak(utterance);
+  };
 
   return (
     <div className="result-card-glow">
@@ -45,7 +87,24 @@ export default function ResultCard({ result, onReset, onReport }) {
 
       <div className="result-object-box">
         <div className="result-title-row">
-          <h2>{result.class}</h2>
+          <div className="result-title-left">
+            <h2>{result.class}</h2>
+            {ttsSupported && (
+              <button
+                type="button"
+                className={`speaker-btn-icon-only ${isSpeaking ? "is-speaking" : ""}`}
+                onClick={speak}
+                title={isSpeaking ? "Bấm để dừng đọc" : "Bấm để nghe đọc thông tin phân loại"}
+                aria-label={isSpeaking ? "Dừng đọc" : "Nghe đọc"}
+              >
+                {isSpeaking ? (
+                  <Square size={15} fill="currentColor" />
+                ) : (
+                  <Volume2 size={18} />
+                )}
+              </button>
+            )}
+          </div>
           <div className="confidence-pill">
             <ShieldCheck size={16} color="#10b981" />
             <span>{result.confidence}% tin cậy</span>
@@ -102,15 +161,22 @@ export default function ResultCard({ result, onReset, onReport }) {
       )}
 
       <div className="result-actions-group">
-        <button type="button" className="primary-btn full-w" onClick={onReset}>
+        <button
+          type="button"
+          className="primary-btn full-w"
+          onClick={() => {
+            stopSpeaking();
+            if (onReset) onReset();
+          }}
+        >
           <Camera size={18} />
           <span>Quét Ảnh Tiếp Theo</span>
         </button>
         <div className="result-sec-actions">
-          <Link to="/history" className="secondary-btn flex-1 text-center">
+          <Link to="/history" className="secondary-btn flex-1 text-center" onClick={stopSpeaking}>
             Xem Lịch Sử
           </Link>
-          <Link to="/guide" className="secondary-btn flex-1 text-center">
+          <Link to="/guide" className="secondary-btn flex-1 text-center" onClick={stopSpeaking}>
             Cẩm Nang Chi Tiết
           </Link>
         </div>

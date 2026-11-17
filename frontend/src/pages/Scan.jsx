@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /**
  * @file Scan.jsx
  * @description Trang quét và phân loại rác thông minh ứng dụng YOLOv8 AI.
@@ -5,6 +6,9 @@
  * tự động lưu kết quả vào LocalStorage và Firebase Firestore.
  */
 import { useRef, useState } from "react";
+=======
+import { useEffect, useRef, useState } from "react";
+>>>>>>> dece04a (update)
 import { Link } from "react-router-dom";
 import Webcam from "react-webcam";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
@@ -23,7 +27,15 @@ import {
   Check,
   Zap,
   Award,
+<<<<<<< HEAD
   Flag
+=======
+  HelpCircle,
+  Flag,
+  Volume2,
+  VolumeX,
+  Square
+>>>>>>> dece04a (update)
 } from "lucide-react";
 
 import { predictWasteImage } from "../api/wasteApi";
@@ -41,6 +53,96 @@ export default function Scan({ user }) {
   const [dragActive, setDragActive] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
   const [isReportOpen, setIsReportOpen] = useState(false);
+
+  // Text-To-Speech (TTS) states
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [ttsSupported, setTtsSupported] = useState(true);
+
+  // Check TTS browser support
+  useEffect(() => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      setTtsSupported(false);
+    }
+  }, []);
+
+  // Stop speech when component unmounts or scan resets
+  const stopSpeaking = () => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    setIsSpeaking(false);
+  };
+
+  useEffect(() => {
+    return () => {
+      stopSpeaking();
+    };
+  }, []);
+
+  // Text-to-speech speak function
+  const speakResult = (customResult = null, customCatConfig = null) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      setTtsSupported(false);
+      return;
+    }
+
+    // Toggle stop if already speaking
+    if (isSpeaking) {
+      stopSpeaking();
+      return;
+    }
+
+    const targetResult = customResult || result;
+    const targetCatConfig = customCatConfig || (targetResult ? getCategoryConfig(targetResult.type) : null);
+
+    if (!targetResult || !targetCatConfig) return;
+
+    // Cancel any previous speech
+    window.speechSynthesis.cancel();
+
+    // Chuẩn bị nội dung đọc theo thứ tự: Tên loại rác -> Thùng rác chỉ định -> Các bước hướng dẫn xử lý
+    const textParts = [
+      `Đây là ${targetCatConfig.title.toLowerCase()}.`,
+      `Hãy bỏ vào ${targetCatConfig.bin}.`
+    ];
+
+    if (targetResult.guide) {
+      textParts.push(targetResult.guide);
+    }
+
+    if (Array.isArray(targetCatConfig.tips) && targetCatConfig.tips.length > 0) {
+      textParts.push(targetCatConfig.tips.join(". ") + ".");
+    }
+
+    const fullSpeechText = textParts.join(" ");
+
+    const utterance = new SpeechSynthesisUtterance(fullSpeechText);
+    utterance.lang = "vi-VN";
+    utterance.rate = 0.95; // Tốc độ vừa phải, dễ nghe
+    utterance.pitch = 1.0;
+
+    // Tìm giọng đọc tiếng Việt nếu có trong danh sách giọng của thiết bị
+    const voices = window.speechSynthesis.getVoices();
+    const viVoice = voices.find((v) => v.lang === "vi-VN" || v.lang.startsWith("vi"));
+    if (viVoice) {
+      utterance.voice = viVoice;
+    }
+
+    utterance.onstart = () => {
+      setIsSpeaking(true);
+    };
+
+    utterance.onend = () => {
+      setIsSpeaking(false);
+    };
+
+    utterance.onerror = (event) => {
+      console.warn("TTS Speech error/interrupted:", event);
+      setIsSpeaking(false);
+    };
+
+    window.speechSynthesis.speak(utterance);
+  };
 
   // Drag & drop handlers
   const handleDrag = (e) => {
@@ -108,9 +210,13 @@ export default function Scan({ user }) {
   };
 
   const resetScan = () => {
+<<<<<<< HEAD
     if (preview && preview.startsWith("blob:")) {
       URL.revokeObjectURL(preview);
     }
+=======
+    stopSpeaking();
+>>>>>>> dece04a (update)
     setFile(null);
     setPreview(null);
     setResult(null);
@@ -174,6 +280,12 @@ export default function Scan({ user }) {
 
       saveHistoryToLocalStorage(data);
       await saveHistoryToFirestore(data);
+
+      // Tự động phát âm thanh đọc kết quả sau khi quét xong
+      const nextCatConfig = getCategoryConfig(data.type);
+      setTimeout(() => {
+        speakResult(data, nextCatConfig);
+      }, 400);
     } catch (error) {
       console.error("SCAN ERROR:", error);
       setErrorMsg("Không thể kết nối đến máy chủ AI hoặc có lỗi trong quá trình phân tích ảnh.");
@@ -452,10 +564,27 @@ export default function Scan({ user }) {
               </div>
             </div>
 
-            {/* Main Object Title & Confidence */}
+            {/* Main Object Title, Speaker Button & Confidence */}
             <div className="result-object-box">
               <div className="result-title-row">
-                <h2>{result.class}</h2>
+                <div className="result-title-left">
+                  <h2>{result.class}</h2>
+                  {ttsSupported && (
+                    <button
+                      type="button"
+                      className={`speaker-btn-icon-only ${isSpeaking ? "is-speaking" : ""}`}
+                      onClick={() => speakResult()}
+                      title={isSpeaking ? "Bấm để dừng đọc" : "Bấm để nghe đọc thông tin phân loại"}
+                      aria-label={isSpeaking ? "Dừng đọc" : "Nghe đọc"}
+                    >
+                      {isSpeaking ? (
+                        <Square size={15} fill="currentColor" />
+                      ) : (
+                        <Volume2 size={18} />
+                      )}
+                    </button>
+                  )}
+                </div>
                 <div className="confidence-pill">
                   <ShieldCheck size={16} color="#10b981" />
                   <span>{result.confidence}% tin cậy</span>
