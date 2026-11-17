@@ -3648,6 +3648,7 @@ button, input, select, textarea {
     text-align: center;
     gap: 40px;
   }
+}
 
   .hero-subtitle {
     margin: 0 auto 32px;

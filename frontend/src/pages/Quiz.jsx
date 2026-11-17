@@ -190,6 +190,7 @@ export default function Quiz({ user }) {
                 <button
                   key={idx}
                   type="button"
+                  className="quiz-option-btn"
                   onClick={() => handleSelectOption(idx)}
                   disabled={isAnswered}
                   className={optClass}

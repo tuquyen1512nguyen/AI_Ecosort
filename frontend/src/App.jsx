@@ -39,6 +39,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/scan" element={<Scan user={user} />} />
           <Route path="/guide" element={<Guide />} />
+          <Route path="/map" element={<EcoMap user={user} />} />
           <Route path="/quiz" element={<Quiz user={user} />} />
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/register" element={<Register />} />
