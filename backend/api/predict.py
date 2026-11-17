@@ -1,45 +1,39 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Query
-from typing import Optional
+"""
+Prediction API Router
+Handles incoming image uploads and interfaces with the YOLOv8 AI inference service.
+"""
+
+from typing import Any, Dict
+from fastapi import APIRouter, File, HTTPException, UploadFile, status
+
 from services.ai_service import predict_waste_image
-from models.prediction import PredictionResponse
 
-router = APIRouter()
+router = APIRouter(tags=["Waste Prediction"])
 
-ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
 
-@router.post("/predict", response_model=PredictionResponse)
-async def predict(
-    file: UploadFile = File(..., description="Tệp hình ảnh rác cần nhận diện (JPEG, PNG, WebP)"),
-    confidence: Optional[float] = Query(
-        None, 
-        ge=0.0, 
-        le=1.0, 
-        description="Ngưỡng độ tin cậy suy luận tùy chọn (0.0 đến 1.0). Nếu không truyền sẽ dùng mặc định 0.50"
-    )
-):
+@router.post(
+    "/predict",
+    summary="Dự đoán và phân loại loại rác từ hình ảnh",
+    response_description="Kết quả nhận diện gồm tên lớp, nhóm rác, độ tin cậy và hướng dẫn xử lý",
+)
+async def predict(file: UploadFile = File(...)) -> Dict[str, Any]:
     """
-    Endpoint nhận diện hình ảnh rác:
-    - Nhận vào file ảnh multipart/form-data
-    - Hỗ trợ ảnh từ webcam và ảnh upload
-    - Trả về JSON { class, type, confidence, color, guide, vietnamese_name, total_detected, detections }
+    Tiếp nhận file ảnh từ người dùng (Upload file hoặc khung hình Webcam)
+    và trả về thông tin phân loại rác thải sinh hoạt tương ứng.
+
+    - **file**: Tệp hình ảnh hợp lệ (JPG, PNG, JPEG, WEBP).
+    - **Returns**: Dictionary chứa:
+        - `class`: Tên vật thể rác (đã bỏ dấu gạch dưới).
+        - `type`: Nhóm rác (RECYCLABLE, NON_RECYCLABLE, HAZARDOUS, UNKNOWN).
+        - `confidence`: Tỷ lệ phần trăm tin cậy của AI (0 - 100%).
+        - `color`: Mã màu HEX đại diện cho nhóm rác.
+        - `guide`: Chỉ dẫn hành động xử lý rác thân thiện với môi trường.
     """
-    content_type = file.content_type or ""
-    filename = (file.filename or "").lower()
-    has_valid_ext = any(filename.endswith(ext) for ext in ALLOWED_EXTENSIONS)
-    is_image_type = content_type.startswith("image/")
-    
-    # Kiểm tra tính hợp lệ của định dạng ảnh
-    if not (is_image_type or has_valid_ext):
+    if not file or not file.filename:
         raise HTTPException(
-            status_code=400, 
-            detail="Tệp tải lên không phải là định dạng hình ảnh hợp lệ. Chấp nhận các định dạng: JPEG, PNG, WebP."
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Vui lòng cung cấp một tệp hình ảnh hợp lệ để phân tích.",
         )
-        
-    try:
-        conf_val = confidence if isinstance(confidence, (int, float)) else None
-        result = await predict_waste_image(file, conf_threshold=conf_val)
-        return result
-    except ValueError as ve:
-        raise HTTPException(status_code=400, detail=str(ve))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Lỗi hệ thống trong quá trình phân tích ảnh: {str(e)}")
+
+    result = await predict_waste_image(file)
+    return result

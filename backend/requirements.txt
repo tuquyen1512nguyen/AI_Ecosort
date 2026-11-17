@@ -1,7 +1,19 @@
-streamlit==1.26.0
-opencv-python-headless==4.8.1.78
-torch==2.0.1
-torchvision==0.15.2
-ultralytics==8.0.173
-urllib3==1.26.6
-onnx==1.15.0
+# ==============================================================================
+# EcoSort AI - Backend Dependencies
+# ==============================================================================
+
+# Core API Framework
+fastapi>=0.100.0
+uvicorn[standard]>=0.22.0
+python-multipart>=0.0.6
+
+# Deep Learning & Computer Vision
+ultralytics>=8.0.0
+torch>=2.0.0
+torchvision>=0.15.0
+pillow>=10.0.0
+opencv-python-headless>=4.8.0
+
+# Optional Utilities & Model Export
+onnx>=1.14.0
+urllib3>=1.26.6

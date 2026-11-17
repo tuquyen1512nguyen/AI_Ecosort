@@ -1,455 +1,370 @@
+/**
+ * @file Home.jsx
+ * @description Trang chủ chính (Landing Page) của nền tảng EcoSort AI.
+ * Giới thiệu các tính năng nhận diện rác thông minh bằng YOLOv8, bộ quy chuẩn 3 màu thùng rác,
+ * bảng điểm xanh cộng đồng và các nút điều hướng trải nghiệm quét ảnh.
+ */
 import { Link } from "react-router-dom";
-import { 
-  Scan, 
-  BookOpen, 
-  Sparkles, 
-  Zap, 
-  ShieldCheck, 
-  Recycle, 
-  Flame, 
-  AlertTriangle, 
-  ArrowRight, 
-  TreePine,
-  Trophy
+import {
+  Camera,
+  ArrowRight,
+  Sparkles,
+  CheckCircle2,
+  Leaf,
+  ShieldCheck,
+  Zap,
+  BarChart3,
+  History,
+  BookOpen,
+  Recycle,
+  Award
 } from "lucide-react";
 
 export default function Home() {
   return (
-    <>
+    <div className="home-container">
+      {/* HERO SECTION */}
       <section className="hero">
         <div className="hero-text">
-          <div className="badge">🤖 TRÍ TUỆ NHÂN TẠO THẾ HỆ MỚI 2026</div>
-
-          <h1>
-            Phân Loại Rác <br />
-            <span>Thông Minh</span> Với <br />
-            Công Nghệ AI
-          </h1>
-
-          <p>
-            EcoSort AI sử dụng thị giác máy tính để nhận diện và phân loại rác
-            thải chính xác trong vài giây.
-/**
- * Trang Chủ EcoSort AI - Modern Hero & Interactive Features
- */
-export default function Home() {
-  return (
-    <div className="page-wrapper container animate-fade-in">
-      {/* Hero Section */}
-      <section className="hero-section">
-        {/* Glow ambient background behind hero */}
-        <div className="hero-glow-bg" />
-
-        <div style={{ position: "relative", zIndex: 1 }}>
-          {/* Pill Badge */}
-          <div className="hero-pill-badge">
-            <Sparkles size={16} style={{ flexShrink: 0 }} />
-            <span>Mô Hình YOLOv8 Nano • Độ chính xác mAP@0.5 đạt 89.4%</span>
+          <div className="badge-pill">
+            <span className="badge-pulse"></span>
+            <Sparkles size={14} className="text-emerald-500" />
+            <span>AI VISION 2026 • THẾ HỆ MỚI</span>
           </div>
 
-          {/* Headline */}
           <h1 className="hero-title">
-            Phân Loại Rác Thông Minh <br />
-            <span className="gradient-text">Kiến Tạo Tương Lai Bền Vững</span>
+            Phân Loại Rác <br />
+            <span className="gradient-text">Thông Minh Tức Thì</span> <br />
+            Bằng Trí Tuệ Nhân Tạo
           </h1>
 
-          {/* Subtitle */}
           <p className="hero-subtitle">
-            EcoSort AI ứng dụng Thị giác máy tính nhận diện tức thời <strong>22 loại rác sinh hoạt</strong>, 
-            tự động quy đổi sang <strong>3 nhóm chuẩn môi trường</strong> và cung cấp chỉ dẫn chuẩn bị 
-            ngăn chặn nhiễm bẩn chéo lô tái chế.
-          </p>
-
-          {/* CTA Buttons */}
-          <div className="hero-cta-group">
-            <Link to="/scan">
-              <button
-                className="btn-primary btn-pill"
-                style={{
-                  padding: "0.95rem 2.25rem",
-                  fontSize: "1.05rem",
-                  fontWeight: 700,
-                }}
-              >
-                <Scan size={20} />
-                Bắt Đầu Quét Rác Ngay
-              </button>
-            </Link>
-
-            <Link to="/guide">
-              <button
-                className="btn-secondary btn-pill"
-                style={{
-                  padding: "0.95rem 2rem",
-                  fontSize: "1.05rem",
-                  fontWeight: 600,
-                }}
-              >
-                <BookOpen size={20} />
-                Cẩm Nang 22 Loại Rác
-              </button>
-            </Link>
-          </div>
-
-          {/* Quick Metrics Bar */}
-          <div className="metrics-grid">
-            <div className="glass-card card-interactive metric-card">
-              <div className="metric-val" style={{ color: "var(--primary)" }}>
-                22+
-              </div>
-              <div className="metric-lbl">
-                Loại Rác Nhận Diện
-              </div>
-            </div>
-
-            <div className="glass-card card-interactive metric-card">
-              <div className="metric-val" style={{ color: "var(--accent-cyan)" }}>
-                {"< 50ms"}
-              </div>
-              <div className="metric-lbl">
-                Tốc Độ Suy Luận
-              </div>
-            </div>
-
-            <div className="glass-card card-interactive metric-card">
-              <div className="metric-val" style={{ color: "#f59e0b" }}>
-                3 Nhóm
-              </div>
-              <div className="metric-lbl">
-                Quy Chuẩn Quốc Gia
-              </div>
-            </div>
-
-            <div className="glass-card card-interactive metric-card">
-              <div className="metric-val" style={{ color: "#a855f7" }}>
-                100%
-              </div>
-              <div className="metric-lbl">
-                Tương Thích Thiết Bị
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3 Step Process Section */}
-      <section style={{ margin: "3.5rem 0" }}>
-        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <h2 style={{ fontSize: "clamp(1.5rem, 4vw, 2rem)", marginBottom: "0.5rem" }}>
-            Quy Trình 3 Bước Dễ Dàng
-          </h2>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", maxWidth: "580px", margin: "0 auto" }}>
-            Chỉ với chiếc điện thoại hoặc máy tính, bạn đã có trợ thủ phân loại rác thông minh
+            EcoSort AI áp dụng thị giác máy tính YOLOv8 tiên tiến giúp nhận diện chính xác 22+ loại rác thải sinh hoạt trong chưa đầy 0.5 giây và hướng dẫn xử lý đúng quy chuẩn tại nguồn.
           </p>
 
           <div className="hero-actions">
-            <Link to="/scan" className="primary-link">📷 Trải Nghiệm Quét AI</Link>
-            <a href="#features" className="secondary-link">Tìm Hiểu Thêm</a>
+            <Link to="/scan" className="primary-btn hero-main-btn">
+              <Camera size={20} />
+              <span>Trải Nghiệm Quét AI Ngay</span>
+              <ArrowRight size={18} />
+            </Link>
+            <a href="#how-it-works" className="secondary-btn hero-sec-btn">
+              <span>Cách Hoạt Động</span>
+            </a>
           </div>
+
+          <div className="hero-trust-row">
+            <div className="trust-item">
+              <CheckCircle2 size={16} color="#10b981" />
+              <span>Miễn phí 100%</span>
+            </div>
+            <div className="trust-item">
+              <Zap size={16} color="#0ea5e9" />
+              <span>Tốc độ &lt; 0.5s</span>
+            </div>
+            <div className="trust-item">
+              <ShieldCheck size={16} color="#8b5cf6" />
+              <span>Chuẩn phân loại 2026</span>
+            </div>
+          </div>
+        </div>
+
+        {/* HERO INTERACTIVE VISUAL CARD */}
+        <div className="hero-visual">
+          <div className="glow-backdrop"></div>
+          
+          <div className="mockup-scanner-card">
+            <div className="mockup-header">
+              <div className="mockup-dots">
+                <span></span><span></span><span></span>
+              </div>
+              <div className="mockup-status">
+                <span className="mockup-live-indicator"></span>
+                <span>AI Vision Scanner Active</span>
+              </div>
+            </div>
+
+            <div className="mockup-display">
+              {/* Scan target visual */}
+              <div className="mockup-image-frame">
+                <div className="mockup-target-corners">
+                  <div className="corner top-left"></div>
+                  <div className="corner top-right"></div>
+                  <div className="corner bottom-left"></div>
+                  <div className="corner bottom-right"></div>
+                </div>
+
+                <div className="scan-laser-line"></div>
+
+                <div className="mockup-object-icon">
+                  🥤
+                </div>
+
+                <div className="mockup-bbox">
+                  <span className="bbox-label">Chai nhựa PET (98.6%)</span>
+                </div>
+              </div>
+
+              {/* Scan mini result preview */}
+              <div className="mockup-meta-card">
+                <div className="mockup-meta-head">
+                  <div className="badge-tag-mini green">
+                    <Recycle size={12} />
+                    <span>RÁC TÁI CHẾ</span>
+                  </div>
+                  <span className="mockup-conf">98.6% Chính xác</span>
+                </div>
+                <p className="mockup-item-name">Chai nhựa trong suốt (Plastic Bottle)</p>
+                <div className="mockup-step-tip">
+                  <span>💡 Hướng dẫn:</span> Súc sạch nước, bóp dẹp thân chai, bỏ vào thùng màu xanh.
+                </div>
+              </div>
+            </div>
+
+            {/* Floating Badges */}
+            <div className="floating-badge badge-eco">
+              <Award size={18} color="#10b981" />
+              <div>
+                <strong>+10 Điểm Xanh</strong>
+                <p>Tích lũy khi phân loại</p>
+              </div>
+            </div>
+
+            <div className="floating-badge badge-speed">
+              <Zap size={18} color="#0ea5e9" />
+              <div>
+                <strong>0.38s</strong>
+                <p>Thời gian nhận diện</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* STATS SECTION */}
+      <section className="stats-strip">
+        <div className="stat-card">
+          <div className="stat-icon-wrapper green">
+            <Recycle size={26} />
+          </div>
+          <div className="stat-info">
+            <h3>1.25M+</h3>
+            <p>Rác thải đã nhận diện</p>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon-wrapper blue">
+            <Leaf size={26} />
+          </div>
+          <div className="stat-info">
+            <h3>480+</h3>
+            <p>Tấn CO2 giảm phát thải</p>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon-wrapper purple">
+            <Sparkles size={26} />
+          </div>
+          <div className="stat-info">
+            <h3>98.6%</h3>
+            <p>Độ chính xác mô hình AI</p>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon-wrapper amber">
+            <Award size={26} />
+          </div>
+          <div className="stat-info">
+            <h3>86,000+</h3>
+            <p>Người dùng sống xanh</p>
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS SECTION */}
+      <section className="how-section" id="how-it-works">
+        <div className="section-head text-center">
+          <span className="section-pill">Quy Trình Đơn Giản</span>
+          <h2>Phân Loại Rác Dễ Dàng Trong 3 Bước</h2>
+          <p>Không cần ghi nhớ bảng quy tắc phức tạp. Chỉ cần mở camera và để AI hỗ trợ bạn.</p>
         </div>
 
         <div className="steps-grid">
-          {/* Step 1 */}
-          <div className="glass-card card-interactive" style={{ position: "relative", overflow: "hidden" }}>
-            <div
-              style={{
-                width: "48px",
-                height: "48px",
-                borderRadius: "14px",
-                background: "rgba(16, 185, 129, 0.15)",
-                color: "var(--primary)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: "1.25rem",
-              }}
-            >
-              <Scan size={24} />
+          <div className="step-card">
+            <div className="step-number">01</div>
+            <div className="step-icon-box bg-emerald">
+              <Camera size={28} />
             </div>
-            <div
-              style={{
-                position: "absolute",
-                top: "1.25rem",
-                right: "1.5rem",
-                fontSize: "2.5rem",
-                fontWeight: 900,
-                color: "rgba(255, 255, 255, 0.05)",
-                userSelect: "none",
-              }}
-            >
-              01
-            </div>
-            <h3 style={{ fontSize: "1.2rem", marginBottom: "0.5rem" }}>1. Chụp Hoặc Tải Ảnh</h3>
-            <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", lineHeight: 1.6 }}>
-              Kéo thả hình ảnh rác từ máy tính hoặc mở trực tiếp Camera điện thoại để quét tức thời khung hình.
-            </p>
+            <h3>Tải Ảnh Hoặc Bật Webcam</h3>
+            <p>Chụp trực tiếp vật phẩm rác từ camera điện thoại, máy tính hoặc tải ảnh sẵn có từ thiết bị.</p>
           </div>
 
-          {/* Step 2 */}
-          <div className="glass-card card-interactive" style={{ position: "relative", overflow: "hidden" }}>
-            <div
-              style={{
-                width: "48px",
-                height: "48px",
-                borderRadius: "14px",
-                background: "rgba(6, 182, 212, 0.15)",
-                color: "var(--accent-cyan)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: "1.25rem",
-              }}
-            >
-              <Zap size={24} />
+          <div className="step-card active-step">
+            <div className="step-number">02</div>
+            <div className="step-icon-box bg-cyan">
+              <Zap size={28} />
             </div>
-            <div
-              style={{
-                position: "absolute",
-                top: "1.25rem",
-                right: "1.5rem",
-                fontSize: "2.5rem",
-                fontWeight: 900,
-                color: "rgba(255, 255, 255, 0.05)",
-                userSelect: "none",
-              }}
-            >
-              02
-            </div>
-            <h3 style={{ fontSize: "1.2rem", marginBottom: "0.5rem" }}>2. AI Phân Tích Siêu Tốc</h3>
-            <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", lineHeight: 1.6 }}>
-              Mô hình YOLOv8 Nano phân tích hình ảnh, phát hiện vật thể dù bị nhàu nát hay biến dạng và gắn mã màu quy chuẩn.
-            </p>
+            <h3>AI YOLOv8 Phân Tích</h3>
+            <p>Mô hình thị giác máy tính quét bề mặt, vật liệu và xác định danh mục rác chính xác trong tích tắc.</p>
           </div>
 
-          {/* Step 3 */}
-          <div className="glass-card card-interactive" style={{ position: "relative", overflow: "hidden" }}>
-            <div
-              style={{
-                width: "48px",
-                height: "48px",
-                borderRadius: "14px",
-                background: "rgba(245, 158, 11, 0.15)",
-                color: "#f59e0b",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: "1.25rem",
-              }}
-            >
-              <ShieldCheck size={24} />
+          <div className="step-card">
+            <div className="step-number">03</div>
+            <div className="step-icon-box bg-purple">
+              <Recycle size={28} />
             </div>
-            <div
-              style={{
-                position: "absolute",
-                top: "1.25rem",
-                right: "1.5rem",
-                fontSize: "2.5rem",
-                fontWeight: 900,
-                color: "rgba(255, 255, 255, 0.05)",
-                userSelect: "none",
-              }}
-            >
-              03
-            </div>
-            <h3 style={{ fontSize: "1.2rem", marginBottom: "0.5rem" }}>3. Chỉ Dẫn & Điểm Eco</h3>
-            <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", lineHeight: 1.6 }}>
-              Thực hiện các bước dọn dẹp vệ sinh trước khi bỏ vào thùng, lưu nhật ký và nhận điểm tích lũy sống xanh.
-            </p>
+            <h3>Xem Hướng Dẫn & Phân Loại</h3>
+            <p>Nhận ngay mã màu thùng rác tương ứng, các bước sơ chế vật phẩm và điểm thưởng sinh thái.</p>
           </div>
         </div>
       </section>
 
-      {/* 3 Waste Groups Preview */}
-      <section style={{ margin: "3.5rem 0" }}>
-        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <h2 style={{ fontSize: "clamp(1.5rem, 4vw, 2rem)", marginBottom: "0.5rem" }}>
-            3 Nhóm Rác Môi Trường Quy Chuẩn
-          </h2>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", maxWidth: "600px", margin: "0 auto" }}>
-            Phân loại đúng ngay từ nguồn giúp tăng 80% tỷ lệ thu hồi tái chế của đô thị
-          </p>
+      {/* CATEGORIES PREVIEW SECTION */}
+      <section className="categories-section">
+        <div className="section-head text-center">
+          <span className="section-pill">Quy Chuẩn Phân Loại</span>
+          <h2>3 Nhóm Rác Quy Định Tại Nguồn</h2>
+          <p>Hệ thống hỗ trợ phân định chính xác theo quy chuẩn môi trường hiện hành.</p>
         </div>
-      </section>
 
-        <div className="waste-groups-grid">
+        <div className="category-cards-grid">
           {/* Recyclable */}
-          <div
-            className="glass-card card-interactive"
-            style={{
-              borderTop: "4px solid var(--recyclable)",
-              background: "linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, var(--bg-card) 60%)",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.85rem" }}>
-              <span className="badge badge-recyclable">
-                <Recycle size={14} />
-                Rác Tái Chế
-              </span>
-              <span style={{ fontSize: "0.8rem", color: "var(--text-dim)" }}>Thùng màu xanh lá</span>
+          <div className="category-box cat-recyclable">
+            <div className="cat-top">
+              <div className="cat-badge">🟢 RÁC TÁI CHẾ</div>
+              <span className="cat-code">Mã Xanh Lá</span>
             </div>
-            <h3 style={{ fontSize: "1.25rem", marginBottom: "0.5rem", color: "var(--primary-light)" }}>
-              Rác Tái Chế (Recyclable)
-            </h3>
-            <p style={{ color: "var(--text-muted)", fontSize: "0.88rem", marginBottom: "1.25rem", lineHeight: 1.6 }}>
-              Vật liệu có khả năng tái sinh thành sản phẩm mới nếu được thu gom sạch sẽ và khô ráo.
-            </p>
-            <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "0.85rem", fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.5 }}>
-              <strong>Ví dụ tiêu biểu:</strong> Chai nhựa PET, lon nhôm, vỏ hộp carton, giấy sạch.
+            <div className="cat-main-icon">♻️</div>
+            <h3>Rác Có Thể Tái Chế</h3>
+            <p className="cat-desc">Vật liệu có thể thu hồi để tái sản xuất thành sản phẩm mới.</p>
+            <ul className="cat-list">
+              <li>✓ Chai nhựa PET, can nhựa sạch</li>
+              <li>✓ Lon bia, lon nước ngọt kim loại</li>
+              <li>✓ Giấy báo, thùng bìa carton sạch</li>
+              <li>✓ Hộp kim loại, đồ nhôm</li>
+            </ul>
+            <div className="cat-action">
+              <span>Chuẩn bị: Rửa sạch, để ráo, bóp dẹp</span>
             </div>
           </div>
 
-          {/* Non-Recyclable */}
-          <div
-            className="glass-card card-interactive"
-            style={{
-              borderTop: "4px solid var(--non-recyclable)",
-              background: "linear-gradient(180deg, rgba(148, 163, 184, 0.08) 0%, var(--bg-card) 60%)",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.85rem" }}>
-              <span className="badge badge-non-recyclable">
-                <Flame size={14} />
-                Rác Sinh Hoạt
-              </span>
-              <span style={{ fontSize: "0.8rem", color: "var(--text-dim)" }}>Thùng màu xám</span>
+          {/* Non-Recyclable / Organic */}
+          <div className="category-box cat-non-rec">
+            <div className="cat-top">
+              <div className="cat-badge">⚪ RÁC SINH HOẠT</div>
+              <span className="cat-code">Mã Xám</span>
             </div>
-            <h3 style={{ fontSize: "1.25rem", marginBottom: "0.5rem", color: "#cbd5e1" }}>
-              Rác Sinh Hoạt / Khó Tái Chế
-            </h3>
-            <p style={{ color: "var(--text-muted)", fontSize: "0.88rem", marginBottom: "1.25rem", lineHeight: 1.6 }}>
-              Chất thải sinh hoạt thông thường khó tái chế do nhiễm bẩn dầu mỡ hoặc kết cấu phức hợp.
-            </p>
-            <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "0.85rem", fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.5 }}>
-              <strong>Ví dụ tiêu biểu:</strong> Túi nilon bẩn, hộp xốp cơm, ống hút nhựa, vỏ bánh kẹo.
+            <div className="cat-main-icon">🗑️</div>
+            <h3>Rác Không Tái Chế / Thường</h3>
+            <p className="cat-desc">Chất thải tiêu hao thông thường không đủ điều kiện tái chế kinh tế.</p>
+            <ul className="cat-list">
+              <li>✓ Túi nilon bẩn, màng bọc thực phẩm</li>
+              <li>✓ Hộp xốp, hộp cơm dính dầu mỡ</li>
+              <li>✓ Ống hút nhựa, thìa dĩa dùng 1 lần</li>
+              <li>✓ Khăn giấy ướt, tã giấy</li>
+            </ul>
+            <div className="cat-action">
+              <span>Chuẩn bị: Buộc kín túi trước khi vứt</span>
             </div>
           </div>
 
           {/* Hazardous */}
-          <div
-            className="glass-card card-interactive"
-            style={{
-              borderTop: "4px solid var(--hazardous)",
-              background: "linear-gradient(180deg, rgba(239, 68, 68, 0.08) 0%, var(--bg-card) 60%)",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.85rem" }}>
-              <span className="badge badge-hazardous">
-                <AlertTriangle size={14} />
-                Rác Nguy Hại
-              </span>
-              <span style={{ fontSize: "0.8rem", color: "var(--text-dim)" }}>Thùng màu đỏ/cam</span>
+          <div className="category-box cat-hazard">
+            <div className="cat-top">
+              <div className="cat-badge">🔴 RÁC NGUY HẠI</div>
+              <span className="cat-code">Mã Đỏ</span>
             </div>
-            <h3 style={{ fontSize: "1.25rem", marginBottom: "0.5rem", color: "#f87171" }}>
-              Rác Thải Nguy Hại (Hazardous)
-            </h3>
-            <p style={{ color: "var(--text-muted)", fontSize: "0.88rem", marginBottom: "1.25rem", lineHeight: 1.6 }}>
-              Chứa hóa chất độc hại, kim loại nặng hoặc chất dễ cháy nổ, tuyệt đối không vứt chung rác sinh hoạt.
-            </p>
-            <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "0.85rem", fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.5 }}>
-              <strong>Ví dụ tiêu biểu:</strong> Pin, bóng đèn huỳnh quang, bình xịt nén, chai lọ hóa chất.
+            <div className="cat-main-icon">☣️</div>
+            <h3>Chất Thải Nguy Hại</h3>
+            <p className="cat-desc">Chứa chất độc, hóa chất hoặc kim loại nặng cần thu gom chuyên biệt.</p>
+            <ul className="cat-list">
+              <li>✓ Pin các loại (tiểu, cúc áo, sạc)</li>
+              <li>✓ Bóng đèn huỳnh quang, bóng thủy ngân</li>
+              <li>✓ Bình xịt hóa chất, sơn, thuốc diệt côn trùng</li>
+              <li>✓ Dược phẩm hết hạn, nhiệt kế vỡ</li>
+            </ul>
+            <div className="cat-action">
+              <span>Lưu ý: Không bỏ chung thùng rác sinh hoạt</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Eco Quiz Highlight Section */}
-      <section style={{ margin: "3.5rem 0" }}>
-        <div
-          className="glass-card card-interactive banner-card"
-          style={{
-            background: "linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(16, 185, 129, 0.08) 100%)",
-            border: "1px solid rgba(245, 158, 11, 0.3)",
-          }}
-        >
-          <div className="banner-content-wrapper">
-            <div
-              style={{
-                width: "56px",
-                height: "56px",
-                borderRadius: "16px",
-                background: "rgba(245, 158, 11, 0.18)",
-                color: "#f59e0b",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-                boxShadow: "0 0 25px rgba(245, 158, 11, 0.2)",
-              }}
-            >
-              <Trophy size={28} />
-            </div>
+      {/* FEATURE HIGHLIGHTS */}
+      <section className="features-showcase">
+        <div className="section-head text-center">
+          <span className="section-pill">Tính Năng Vượt Trội</span>
+          <h2>Giải Pháp Toàn Diện Cho Người Tiêu Dùng Xanh</h2>
+          <p>Tích hợp nhiều tiện ích hỗ trợ cộng đồng hình thành thói quen phân loại rác bền vững.</p>
+        </div>
 
-            <div>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", fontSize: "0.78rem", fontWeight: 700, color: "#fbbf24", marginBottom: "0.25rem" }}>
-                <span>🎮 TRẮC NGHIỆM NHANH</span>
-                <span>•</span>
-                <span>TÍCH LŨY +50 ĐIỂM ECO</span>
-              </div>
-              <h3 style={{ fontSize: "clamp(1.2rem, 3vw, 1.45rem)", fontWeight: 800, marginBottom: "0.35rem" }}>
-                Thử Tài Trắc Nghiệm Sống Xanh
-              </h3>
-              <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", lineHeight: 1.55, margin: 0 }}>
-                Bạn đã tự tin phân biệt hộp xốp cơm, pin tiểu, lon nhôm hay chai PET? Hãy thử sức với 5 câu đố tình huống thực tế để nhận điểm thưởng thăng hạng ngay!
-              </p>
+        <div className="feature-cards-grid">
+          <div className="feat-card">
+            <div className="feat-icon-bubble green">
+              <Zap size={24} />
             </div>
+            <h3>Nhận Diện Đa Thiết Bị</h3>
+            <p>Hỗ trợ tương thích cả webcam laptop lẫn camera điện thoại di động với độ trễ siêu thấp.</p>
+            <Link to="/scan" className="feat-link">
+              Trải nghiệm ngay <ArrowRight size={15} />
+            </Link>
           </div>
 
-          <Link to="/quiz" className="banner-btn-link">
-            <button
-              className="btn-primary banner-btn"
-              style={{
-                padding: "0.85rem 1.85rem",
-                borderRadius: "12px",
-                fontSize: "0.95rem",
-                fontWeight: 700,
-                background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                boxShadow: "0 4px 18px rgba(245, 158, 11, 0.35)",
-              }}
-            >
-              <Trophy size={18} />
-              Tham Gia Thử Thách
-            </button>
-          </Link>
+          <div className="feat-card">
+            <div className="feat-icon-bubble blue">
+              <History size={24} />
+            </div>
+            <h3>Nhật Ký Quét Cá Nhân</h3>
+            <p>Lưu trữ chi tiết các lần quét rác kèm ảnh và độ tin cậy để theo dõi thói quen tiêu dùng.</p>
+            <Link to="/history" className="feat-link">
+              Xem lịch sử <ArrowRight size={15} />
+            </Link>
+          </div>
+
+          <div className="feat-card">
+            <div className="feat-icon-bubble purple">
+              <BookOpen size={24} />
+            </div>
+            <h3>Thư Viện Kiến Thức Môi Trường</h3>
+            <p>Cẩm nang phân loại chi tiết với hướng dẫn cụ thể cho hơn 22 nhóm rác phổ thông.</p>
+            <Link to="/guide" className="feat-link">
+              Đọc cẩm nang <ArrowRight size={15} />
+            </Link>
+          </div>
+
+          <div className="feat-card">
+            <div className="feat-icon-bubble amber">
+              <BarChart3 size={24} />
+            </div>
+            <h3>Báo Cáo Tác Động Môi Trường</h3>
+            <p>Tổng hợp chỉ số giảm thiểu khí CO2 và tỷ lệ phân loại rác tái chế theo thời gian thực.</p>
+            <Link to="/scan" className="feat-link">
+              Khám phá thêm <ArrowRight size={15} />
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* Ecological CTA Banner */}
-      <section
-        className="glass-card banner-card"
-        style={{
-          background: "linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(6, 182, 212, 0.1) 100%)",
-          border: "1px solid rgba(16, 185, 129, 0.3)",
-          marginBottom: "2rem",
-        }}
-      >
-        <div style={{ maxWidth: "600px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--primary-light)", marginBottom: "0.5rem", fontWeight: 700, fontSize: "0.85rem" }}>
-            <TreePine size={18} />
-            <span>Mỗi Hành Động Nhỏ • Tạo Nên Thay Đổi Lớn</span>
+      {/* CTA BANNER */}
+      <section className="cta-banner">
+        <div className="cta-content">
+          <div className="cta-badge">🌍 HÀNH ĐỘNG VÌ MÔI TRƯỜNG</div>
+          <h2>Bắt Đầu Phân Loại Rác Thông Minh Hôm Nay</h2>
+          <p>Chỉ mất 2 giây để phân loại đúng một món đồ và giữ hành tinh luôn xanh sạch.</p>
+          <div className="cta-actions">
+            <Link to="/scan" className="cta-primary-btn">
+              <Camera size={20} />
+              <span>Quét Rác Ngay Bây Giờ</span>
+            </Link>
+            <Link to="/guide" className="cta-secondary-btn">
+              Xem Hướng Dẫn Chi Tiết
+            </Link>
           </div>
-          <h3 style={{ fontSize: "clamp(1.25rem, 3vw, 1.6rem)", marginBottom: "0.5rem" }}>
-            Sẵn sàng xây dựng thói quen phân loại rác thông minh?
-          </h3>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.92rem", lineHeight: 1.6, margin: 0 }}>
-            Khám phá công nghệ nhận diện AI và cùng đóng góp vào các chỉ số giảm thiểu phát thải carbon ngay hôm nay.
-          </p>
         </div>
-
-        <Link to="/scan" className="banner-btn-link">
-          <button
-            className="btn-primary banner-btn"
-            style={{
-              padding: "0.95rem 2rem",
-              borderRadius: "12px",
-              fontSize: "1rem",
-              fontWeight: 700,
-            }}
-          >
-            Quét Thử Ngay Bây Giờ
-            <ArrowRight size={18} />
-          </button>
-        </Link>
       </section>
-    </>
+    </div>
   );
 }
